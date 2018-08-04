@@ -10,7 +10,9 @@ import logging
 import sys
 import time
 import re
+import os
 import datetime as dt
+import subprocess
 from IPython.display import display, clear_output
 from synorchestrator import config
 from synorchestrator.util import get_json, get_packed_cwl, ctime2datetime, convert_timedelta
@@ -52,13 +54,14 @@ def run_submission(wes_id, submission_id):
 def run_next_queued(wes_id):
     """
     Run the next submission slated for a single WES endpoint.
+
+    Return None if no submissions are queued.
     """
     queued_submissions = get_submissions(wes_id, status='RECEIVED')
     if not queued_submissions:
         return None
     for submission_id in sorted(queued_submissions):
-        if queued_submissions[submission_id]['status'] == 'RECEIVED':
-            return run_submission(wes_id, submission_id)
+        return run_submission(wes_id, submission_id)
 
 
 # def run_checker(eval_id, wes_id, queue_only=True):
@@ -105,30 +108,31 @@ def monitor(submissions):
 
     current = dt.datetime.now()
     statuses = []
-    for submission_dict in submissions:
+    # for local, toil, cromwell, arvados, cwltool, etc.
+    for wf_service in submissions:
         status_dict = {}
-        for eval_id in submission_dict:
-            for submission_id, bundle in submission_dict[eval_id].items():
-                client = WESClient(**config.wes_config()[bundle['wes_id']])
-                run = client.get_workflow_run_status(bundle['run_id'])
-                if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
-                    etime = convert_timedelta(
-                        current - ctime2datetime(bundle['start_time'])
-                    )
-                elif 'elapsed_time' not in bundle:
-                    etime = 0
-                else:
-                    etime = bundle['elapsed_time']
-                status_dict.setdefault(eval_id, {})[submission_id] = {
-                    'queue_id': eval_id,
-                    'job': bundle['job'],
-                    'submission_status': bundle['submission_status'],
-                    'wes_id': bundle['wes_id'],
-                    'run_id': run['workflow_id'],
-                    'run_status': run['state'],
-                    'start_time': bundle['start_time'],
-                    'elapsed_time': etime
-                }
+        # for run ID######## in each
+        for run_id in submissions[wf_service]:
+            if 'run' not in submissions[wf_service][run_id]:
+                continue
+            run = submissions[wf_service][run_id]['run']
+            client = WESClient(config.wes_config()[wf_service])
+            # updated_status = client.get_workflow_run_status(run['run_id'])
+            updated_status = 'RUNNING'
+            run['state'] = updated_status
+            if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
+                etime = convert_timedelta(current - ctime2datetime(run['start_time']))
+            elif 'elapsed_time' not in run:
+                etime = 0
+            else:
+                etime = run['elapsed_time']
+            status_dict.setdefault(wf_service, {})[run_id] = {
+                'wf_id': submissions[wf_service][run_id]['wf_id'],
+                'run_status': updated_status,
+                'wes_id': wf_service,
+                'start_time': run['start_time'],
+                'elapsed_time': etime
+            }
         statuses.append(status_dict)
 
     status_df = pd.DataFrame.from_dict(
@@ -140,13 +144,14 @@ def monitor(submissions):
     )
 
     clear_output(wait=True)
+    os.system('clear')
     display(status_df)
     sys.stdout.flush()
     if any(status_df['run_status'].isin(['QUEUED', 'INITIALIZING', 'RUNNING'])):
         time.sleep(1)
-        monitor(statuses)
+        monitor(get_json(submission_queue))
     else:
-        print("Done")
+        print("Done!")
 
 
 # create_submission(wes_id='local',
@@ -161,3 +166,5 @@ def monitor(submissions):
 print(run_submission("local", "040804130201818647"))
 i = get_submissions("local", status='RECEIVED')
 print(i)
+j = get_json(submission_queue)
+monitor(j)

@@ -40,8 +40,13 @@
             "type": "cwl"
         }, 
         "040804130407583742": {
-            "status": "RECEIVED", 
+            "status": "SUBMITTED", 
             "wf_id": "wflow0", 
+            "type": "cwl", 
+            "run": {
+                "start_time": "Sat Aug  4 15:02:58 2018", 
+                "run_id": "90eb7a8fc74947be891c32266a3fd1c7"
+            }, 
             "data": {
                 "wf": "/home/quokka/git/workflow-service/testdata/md5sum.cwl", 
                 "jsonyaml": "file:///home/quokka/git/workflow-service/testdata/md5sum.cwl.json", 
@@ -49,16 +54,15 @@
                     "file:///home/quokka/git/workflow-service/testdata/md5sum.input", 
                     "file:///home/quokka/git/workflow-service/testdata/dockstore-tool-md5sum.cwl"
                 ]
-            }, 
-            "type": "cwl"
+            }
         }, 
         "040804130201818647": {
             "status": "SUBMITTED", 
             "wf_id": "wflow0", 
             "type": "cwl", 
             "run": {
-                "start_time": "Sat Aug  4 13:33:06 2018", 
-                "run_id": "4953aa014034489092d80ba3e9d15c82"
+                "start_time": "Sat Aug  4 15:20:16 2018", 
+                "run_id": "855302d09e8942778dd761451f87228c"
             }, 
             "data": {
                 "wf": "/home/quokka/git/workflow-service/testdata/md5sum.cwl", 

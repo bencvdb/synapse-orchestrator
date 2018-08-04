@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-config_path = os.path.abspath('config.yaml')
+config_path = os.path.abspath('/home/quokka/git/orchestrator/synorchestrator/config.yaml')
 
 
 def eval_config():
