@@ -41,7 +41,7 @@ def get_yaml(filepath):
 
 def save_yaml(filepath, app_config):
     with open(filepath, 'w') as f:
-        yaml.dump(app_config, f, default_flow_style=False)
+        yaml.dump(app_config, f)
 
 
 def get_json(filepath):
@@ -54,7 +54,7 @@ def get_json(filepath):
 
 def save_json(filepath, app_config):
     with open(filepath, 'w') as f:
-        json.dump(app_config, f, default_flow_style=False)
+        json.dump(app_config, f, indent=4)
 
 
 def ctime2datetime(time_str):
