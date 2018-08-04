@@ -29,33 +29,25 @@ def create_submission(wes_id, wf_name, submission_data, type):
 
 
 def get_submissions(wes_id, status='RECEIVED'):
-    """
-    Return all submissions to a queue matching the specified status.
-    """
+    """Return all ids with the requested status."""
     submissions = get_json(submission_queue)
     return [id for id, bundle in submissions[wes_id].items() if bundle['status'] == status]
 
 
 def get_submission_bundle(wes_id, submission_id):
-    """
-    Submit a new job request to an evaluation queue.
-    """
+    """Return the submission's info."""
     return get_json(submission_queue)[wes_id][submission_id]
 
 
 def update_submission_status(wes_id, submission_id, status):
-    """
-    Update the status of a submission.
-    """
+    """Update the status of a submission."""
     submissions = get_json(submission_queue)
     submissions[wes_id][submission_id]['status'] = status
     save_json(submission_queue, submissions)
 
 
 def update_submission_run(wes_id, submission_id, run_data):
-    """
-    Update information for a workflow run.
-    """
+    """Update information for a workflow run."""
     evals = get_json(submission_queue)
     evals[wes_id][submission_id]['run'] = run_data
     save_json(submission_queue, evals)

@@ -53,11 +53,12 @@ def run_next_queued(wes_id):
     """
     Run the next submission slated for a single WES endpoint.
     """
-    queued_submissions = get_json(submission_queue)[wes_id]
-    for submission_id in queued_submissions:
+    queued_submissions = get_submissions(wes_id, status='RECEIVED')
+    if not queued_submissions:
+        return None
+    for submission_id in sorted(queued_submissions):
         if queued_submissions[submission_id]['status'] == 'RECEIVED':
             return run_submission(wes_id, submission_id)
-    return None
 
 
 # def run_checker(eval_id, wes_id, queue_only=True):
