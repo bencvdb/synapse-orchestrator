@@ -23,7 +23,7 @@ def get_yaml(filepath):
 
 def save_yaml(filepath, app_config):
     with open(filepath, 'w') as f:
-        yaml.dump(app_config, f)
+        yaml.dump(app_config, f, default_flow_style=False)
 
 
 def get_json(filepath):

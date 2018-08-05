@@ -5,7 +5,7 @@ from synorchestrator.util import get_json, save_json
 
 logger = logging.getLogger(__name__)
 
-submission_queue = '/home/quokka/git/orchestrator/synorchestrator/submission_queue.json'
+submission_queue = 'synorchestrator/submission_queue.json'
 
 
 def create_submission(wes_id, submission_data, type='cwl', wf_name='wflow0'):

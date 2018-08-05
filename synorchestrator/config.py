@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-config_path = os.path.abspath('/home/quokka/git/orchestrator/synorchestrator/config.yaml')
+config_path = os.path.abspath('synorchestrator/config.yaml')
 
 
 def eval_config():
@@ -26,39 +26,56 @@ def wes_config():
     return get_yaml(config_path)['workflowservices']
 
 
-def add_eval(eval_id):
+def add_eval(service,
+             submission_type,
+             trs_id,
+             version_id,
+             workflow_id,
+             workflow_type):
     """
     Register a Synapse evaluation queue to the orchestrator's
     scope of work.
 
     :param eval_id: integer ID of a Synapse evaluation queue
     """
-    set_yaml(section='evals', var2add=eval_id)
+    config = {'submission_type': submission_type,
+              'trs_id': trs_id,
+              'version_id': version_id,
+              'workflow_id': workflow_id,
+              'workflow_type': workflow_type}
+    set_yaml('evals', service, config)
 
 
-def add_toolregistry(trs_id):
+def add_toolregistry(service, auth, host, proto):
     """
     Register a Tool Registry Service endpoint to the orchestrator's
     search space for workflows.
 
     :param trs_id: string ID of TRS endpoint (e.g., 'Dockstore')
     """
-    set_yaml(section='toolregistries', var2add=trs_id)
+    config = {'auth': auth,
+              'host': host,
+              'proto': proto}
+    set_yaml('toolregistries', service, config)
 
 
-def add_workflowservice(wes_id):
+def add_workflowservice(service, auth, auth_type, host, proto):
     """
     Register a Workflow Execution Service endpoint to the
     orchestrator's available environment options.
 
     :param wes_id: string ID of WES endpoint (e.g., 'workflow-service')
     """
-    set_yaml(section='workflowservices', var2add=wes_id)
+    config = {'auth': auth,
+              'auth_type': auth_type,
+              'host': host,
+              'proto': proto}
+    set_yaml('workflowservices', service, config)
 
 
-def set_yaml(section, var2add):
+def set_yaml(section, service, var2add):
     orchestrator_config = get_yaml(config_path)
-    orchestrator_config.setdefault(section, []).append(var2add)
+    orchestrator_config.setdefault(section, {})[service] = var2add
     save_yaml(config_path, orchestrator_config)
 
 

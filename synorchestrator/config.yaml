@@ -1,34 +1,34 @@
-toolregistries:
-  dockstore:
-    host: "dockstore.org:8443"
-    auth:
-    proto: "https"
-workflowservices:
-  hca-cromwell:
-    host: "g0n2qjnu94.execute-api.us-east-1.amazonaws.com/test"
-    auth:
-    auth_type: ""
-    proto: "http"
-  arvados-wes:
-    host: "wes.qr1hi.arvadosapi.com"
-    auth:
-    auth_type: ""
-    proto: "http"
-  local:
-    host: "0.0.0.0:8080"
-    auth:
-    auth_type: ""
-    proto: "http"
 evals:
   wflow0:
-    workflow_id: "github.com/dockstore-testing/md5sum-checker"
-    version_id: "develop"
-    trs_id: "dockstore"
-    workflow_type: "CWL"
-    submission_type: "params"
+    submission_type: params
+    trs_id: dockstore
+    version_id: develop
+    workflow_id: github.com/dockstore-testing/md5sum-checker
+    workflow_type: CWL
   wflow1:
-    workflow_id: "github.com/dockstore-testing/md5sum-checker/wdl"
-    version_id: "develop"
-    trs_id: "dockstore"
-    workflow_type: "WDL"
-    submission_type: "params"
+    submission_type: params
+    trs_id: dockstore
+    version_id: develop
+    workflow_id: github.com/dockstore-testing/md5sum-checker/wdl
+    workflow_type: WDL
+toolregistries:
+  dockstore:
+    auth: ''
+    host: dockstore.org:8443
+    proto: https
+workflowservices:
+  arvados-wes:
+    auth: ''
+    auth_type: ''
+    host: wes.qr1hi.arvadosapi.com
+    proto: http
+  hca-cromwell:
+    auth: ''
+    auth_type: ''
+    host: g0n2qjnu94.execute-api.us-east-1.amazonaws.com/test
+    proto: http
+  local:
+    auth: ''
+    auth_type: ''
+    host: 0.0.0.0:8080
+    proto: http
