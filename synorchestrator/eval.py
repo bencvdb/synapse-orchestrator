@@ -23,8 +23,8 @@ def create_submission(wes_id, wf_name, submission_data, type):
                                                          'wf_id': wf_name,
                                                          'type': type}
     save_json(submission_queue, submissions)
-    logger.info("Created new job submission:"
-                "\n - submission ID: {}".format(submission_id))
+    logger.info(" Queueing Job for '{}' endpoint:"
+                "\n - submission ID: {}".format(wes_id, submission_id))
     return submission_id
 
 
