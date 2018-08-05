@@ -1,10 +1,7 @@
 import json
 import yaml
-import subprocess32
 import logging
 import datetime as dt
-from synorchestrator import wdl_parser
-from six import itervalues
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
