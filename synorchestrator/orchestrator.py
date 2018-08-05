@@ -60,41 +60,43 @@ def run_next_queued(wes_id):
         return run_submission(wes_id, submission_id)
 
 
-def monitor(submissions):
-    """
-    Monitor progress of workflow jobs.
-    """
+def monitor_service(wf_service):
+    status_dict = {}
+    # for run ID######## in each
+    submissions = get_json(submission_queue)
+    for run_id in submissions[wf_service]:
+        if 'run' not in submissions[wf_service][run_id]:
+            continue
+        run = submissions[wf_service][run_id]['run']
+        client = WESClient(config.wes_config()[wf_service])
+        updated_status = client.get_workflow_run_status(run['run_id'])['state']
+        run['state'] = updated_status
+        if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
+            etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
+        elif 'elapsed_time' not in run:
+            etime = 0
+        else:
+            etime = run['elapsed_time']
+        run['elapsed_time'] = etime
+        status_dict.setdefault(wf_service, {})[run_id] = {
+            'wf_id': submissions[wf_service][run_id]['wf_id'],
+            'run_id': run['run_id'],
+            'run_status': updated_status,
+            'wes_id': wf_service,
+            'start_time': run['start_time'],
+            'elapsed_time': etime}
+    return status_dict
+
+def monitor():
+    """Monitor progress of workflow jobs."""
     import pandas as pd
     pd.set_option('display.width', 100)
 
-    current = dt.datetime.now()
     statuses = []
+    submissions = get_json(submission_queue)
     # for local, toil, cromwell, arvados, cwltool, etc.
     for wf_service in submissions:
-        status_dict = {}
-        # for run ID######## in each
-        for run_id in submissions[wf_service]:
-            if 'run' not in submissions[wf_service][run_id]:
-                continue
-            run = submissions[wf_service][run_id]['run']
-            client = WESClient(config.wes_config()[wf_service])
-            updated_status = client.get_workflow_run_status(run['run_id'])['state']
-            run['state'] = updated_status
-            if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
-                etime = convert_timedelta(current - ctime2datetime(run['start_time']))
-            elif 'elapsed_time' not in run:
-                etime = 0
-            else:
-                etime = run['elapsed_time']
-            status_dict.setdefault(wf_service, {})[run_id] = {
-                'wf_id': submissions[wf_service][run_id]['wf_id'],
-                'run_id': run['run_id'],
-                'run_status': updated_status,
-                'wes_id': wf_service,
-                'start_time': run['start_time'],
-                'elapsed_time': etime
-            }
-        statuses.append(status_dict)
+        statuses.append(monitor_service(wf_service))
 
     status_df = pd.DataFrame.from_dict(
         {(i, j): status[i][j]
@@ -109,22 +111,21 @@ def monitor(submissions):
     sys.stdout.flush()
     if True:  # any(status_df['run_status'].isin(['QUEUED', 'INITIALIZING', 'RUNNING'])):
         time.sleep(1)
-        monitor(get_json(submission_queue))
+        monitor()
     else:
         print("Done!")
 
 
-# submission_id = create_submission(wes_id='local',
-#                                   submission_data={'wf': '/home/quokka/git/workflow-service/testdata/md5sum.cwl',
-#                                                    'jsonyaml': 'file:///home/quokka/git/workflow-service/testdata/md5sum.cwl.json',
-#                                                    'attachments': ['file:///home/quokka/git/workflow-service/testdata/md5sum.input',
-#                                                    'file:///home/quokka/git/workflow-service/testdata/dockstore-tool-md5sum.cwl']},
-#                   wf_name='wflow0',
-#                   type='cwl')
-# #
-# # print(get_submission_bundle("local", "040804130201818647"))
-# print(run_submission("local", submission_id))
-# i = get_submissions("local", status='RECEIVED')
-# print(i)
-# j = get_json(submission_queue)
-# monitor(j)
+submission_id = create_submission(wes_id='local',
+                                  submission_data={'wf': '/home/quokka/git/workflow-service/testdata/md5sum.wdl',
+                                                   'jsonyaml': 'file:///home/quokka/git/workflow-service/testdata/md5sum.wdl.json',
+                                                   'attachments': ['file:///home/quokka/git/workflow-service/testdata/md5sum.input']},
+                  wf_name='wflow0',
+                  type='cwl')
+#
+# print(get_submission_bundle("local", "040804130201818647"))
+print(run_submission("local", submission_id))
+i = get_submissions("local", status='RECEIVED')
+print(i)
+j = get_json(submission_queue)
+monitor()
