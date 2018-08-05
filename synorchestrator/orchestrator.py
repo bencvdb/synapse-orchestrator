@@ -12,15 +12,16 @@ import time
 import os
 import datetime as dt
 from IPython.display import display, clear_output
-from synorchestrator import config
+from synorchestrator.config import wes_config
 from synorchestrator.util import get_json, ctime2datetime, convert_timedelta
 from synorchestrator.wes.client import WESClient
-from synorchestrator.eval import (create_submission,
-                                  get_submission_bundle,
-                                  get_submissions,
-                                  update_submission_run,
-                                  update_submission_status,
-                                  submission_queue)
+from wes_client.util import get_status
+from synorchestrator.eval import create_submission
+from synorchestrator.eval import get_submission_bundle
+from synorchestrator.eval import get_submissions
+from synorchestrator.eval import update_submission
+from synorchestrator.eval import update_submission_run
+from synorchestrator.eval import submission_queue
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -37,95 +38,129 @@ def run_submission(wes_id, submission_id):
                 " \n - submission ID: {}"
                 .format(wes_id, submission_id))
 
-    client = WESClient(config.wes_config()[wes_id])
+    client = WESClient(wes_config()[wes_id])
     run_data = client.run_workflow(submission['data']['wf'],
                                    submission['data']['jsonyaml'],
                                    submission['data']['attachments'])
     run_data['start_time'] = dt.datetime.now().ctime()
-    update_submission_run(wes_id, submission_id, run_data)
-    update_submission_status(wes_id, submission_id, 'SUBMITTED')
+    update_submission(wes_id, submission_id, 'run', run_data)
+    update_submission(wes_id, submission_id, 'status', 'SUBMITTED')
     return run_data
 
 
-def run_next_queued(wes_id):
+def run_next_queued(wf_service):
     """
     Run the next submission slated for a single WES endpoint.
 
     Return None if no submissions are queued.
     """
-    queued_submissions = get_submissions(wes_id, status='RECEIVED')
+    queued_submissions = get_submissions(wf_service, status='RECEIVED')
     if not queued_submissions:
-        return None
-    for submission_id in sorted(queued_submissions):
-        return run_submission(wes_id, submission_id)
+        return False
+    for submssn_id in sorted(queued_submissions):
+        return run_submission(wf_service, submssn_id)
+
+
+def run_all():
+    """
+    Run all jobs with the status: RECEIVED in the submission queue.
+
+    Check the status of each job per workflow service for status: COMPLETE
+    before running the next queued job.
+    """
+    current_job_state = {}
+    for wf_service in wes_config():
+        current_job_state[wf_service] = ''
+    for wf_service in wes_config():
+        submissions_left = True
+        while submissions_left:
+            submissions_left = run_next_queued(wf_service)
+            if not submissions_left:
+                break
+            status = get_status(submissions_left['run_id'])
+            while status != 'COMPLETE':
+                time.sleep(4)
 
 
 def monitor_service(wf_service):
+    """
+    Returns a dictionary of all of the jobs under a single wes service appropriate
+    for displaying as a pandas dataframe.
+
+    :param wf_service:
+    :return:
+    """
     status_dict = {}
-    # for run ID######## in each
     submissions = get_json(submission_queue)
     for run_id in submissions[wf_service]:
         if 'run' not in submissions[wf_service][run_id]:
-            continue
-        run = submissions[wf_service][run_id]['run']
-        client = WESClient(config.wes_config()[wf_service])
-        updated_status = client.get_workflow_run_status(run['run_id'])['state']
-        run['state'] = updated_status
-        if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
-            etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
-        elif 'elapsed_time' not in run:
-            etime = 0
+            status_dict.setdefault(wf_service, {})[run_id] = {
+                'wf_id': submissions[wf_service][run_id]['wf_id'],
+                'run_id': '-',
+                'run_status': 'QUEUED',
+                'wes_id': wf_service,
+                'start_time': '-',
+                'elapsed_time': '-'}
         else:
-            etime = run['elapsed_time']
-        run['elapsed_time'] = etime
-        status_dict.setdefault(wf_service, {})[run_id] = {
-            'wf_id': submissions[wf_service][run_id]['wf_id'],
-            'run_id': run['run_id'],
-            'run_status': updated_status,
-            'wes_id': wf_service,
-            'start_time': run['start_time'],
-            'elapsed_time': etime}
+            run = submissions[wf_service][run_id]['run']
+            client = WESClient(wes_config()[wf_service])
+            run['state'] = client.get_workflow_run_status(run['run_id'])['state']
+            if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
+                etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
+            elif 'elapsed_time' not in run:
+                etime = '0h:0m:0s'
+            else:
+                etime = run['elapsed_time']
+            update_submission_run(wf_service, run_id, 'elapsed_time', etime)
+            status_dict.setdefault(wf_service, {})[run_id] = {
+                'wf_id': submissions[wf_service][run_id]['wf_id'],
+                'run_id': run['run_id'],
+                'run_status': run['state'],
+                'wes_id': wf_service,
+                'start_time': run['start_time'],
+                'elapsed_time': etime}
     return status_dict
+
 
 def monitor():
     """Monitor progress of workflow jobs."""
     import pandas as pd
     pd.set_option('display.width', 100)
 
-    statuses = []
-    submissions = get_json(submission_queue)
-    # for local, toil, cromwell, arvados, cwltool, etc.
-    for wf_service in submissions:
-        statuses.append(monitor_service(wf_service))
+    while True:
+        statuses = []
+        submissions = get_json(submission_queue)
 
-    status_df = pd.DataFrame.from_dict(
-        {(i, j): status[i][j]
-         for status in statuses
-         for i in status.keys()
-         for j in status[i].keys()},
-        orient='index')
+        for wf_service in submissions:
+            statuses.append(monitor_service(wf_service))
 
-    clear_output(wait=True)
-    os.system('clear')
-    display(status_df)
-    sys.stdout.flush()
-    if True:  # any(status_df['run_status'].isin(['QUEUED', 'INITIALIZING', 'RUNNING'])):
+        status_df = pd.DataFrame.from_dict(
+            {(i, j): status[i][j]
+             for status in statuses
+             for i in status.keys()
+             for j in status[i].keys()},
+            orient='index')
+
+        clear_output(wait=True)
+        os.system('clear')
+        display(status_df)
+        sys.stdout.flush()
         time.sleep(1)
-        monitor()
-    else:
-        print("Done!")
 
 
-submission_id = create_submission(wes_id='local',
-                                  submission_data={'wf': '/home/quokka/git/workflow-service/testdata/md5sum.wdl',
-                                                   'jsonyaml': 'file:///home/quokka/git/workflow-service/testdata/md5sum.wdl.json',
-                                                   'attachments': ['file:///home/quokka/git/workflow-service/testdata/md5sum.input']},
-                  wf_name='wflow0',
-                  type='cwl')
+# submission_id = create_submission(wes_id='local',
+#                                   submission_data={'wf': '/home/quokka/git/workflow-service/testdata/md5sum.wdl',
+#                                                    'jsonyaml': 'file:///home/quokka/git/workflow-service/testdata/md5sum.wdl.json',
+#                                                    'attachments': ['file:///home/quokka/git/workflow-service/testdata/md5sum.input']},
+#                   wf_name='wflow0',
+#                   type='cwl')
+# #
+# # print(get_submission_bundle("local", "040804130201818647"))
+# print(run_submission("local", submission_id))
+# # i = get_submissions("local", status='RECEIVED')
+# # print(i)
+# # j = get_json(submission_queue)
+# # monitor()
 #
-# print(get_submission_bundle("local", "040804130201818647"))
-print(run_submission("local", submission_id))
-i = get_submissions("local", status='RECEIVED')
-print(i)
-j = get_json(submission_queue)
-monitor()
+#
+# run_submission("local", '040804203516909095')

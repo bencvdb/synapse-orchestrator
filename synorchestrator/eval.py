@@ -1,9 +1,6 @@
 import logging
-import os
-import json
 import datetime as dt
 
-from synorchestrator import config
 from synorchestrator.util import get_json, save_json
 
 logger = logging.getLogger(__name__)
@@ -11,9 +8,11 @@ logger = logging.getLogger(__name__)
 submission_queue = '/home/quokka/git/orchestrator/synorchestrator/submission_queue.json'
 
 
-def create_submission(wes_id, wf_name, submission_data, type):
+def create_submission(wes_id, submission_data, type='cwl', wf_name='wflow0'):
     """
     Submit a new job request to an evaluation queue.
+
+    Both type and wf_name are optional but could be used with TRS.
     """
     submissions = get_json(submission_queue)
     submission_id = dt.datetime.now().strftime('%d%m%d%H%M%S%f')
@@ -39,15 +38,15 @@ def get_submission_bundle(wes_id, submission_id):
     return get_json(submission_queue)[wes_id][submission_id]
 
 
-def update_submission_status(wes_id, submission_id, status):
+def update_submission(wes_id, submission_id, param, status):
     """Update the status of a submission."""
     submissions = get_json(submission_queue)
-    submissions[wes_id][submission_id]['status'] = status
+    submissions[wes_id][submission_id][param] = status
     save_json(submission_queue, submissions)
 
 
-def update_submission_run(wes_id, submission_id, run_data):
-    """Update information for a workflow run."""
-    evals = get_json(submission_queue)
-    evals[wes_id][submission_id]['run'] = run_data
-    save_json(submission_queue, evals)
+def update_submission_run(wes_id, submission_id, param, status):
+    """Update the status of a submission."""
+    submissions = get_json(submission_queue)
+    submissions[wes_id][submission_id]['run'][param] = status
+    save_json(submission_queue, submissions)

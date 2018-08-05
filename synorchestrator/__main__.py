@@ -20,6 +20,8 @@ def main(argv=sys.argv[1:]):
         print(u"%s %s" % (sys.argv[0], pkg[0].version))
         exit(0)
 
+    monitor()
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
