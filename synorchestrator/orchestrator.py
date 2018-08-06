@@ -12,7 +12,7 @@ import time
 import os
 import datetime as dt
 from IPython.display import display, clear_output
-from synorchestrator.config import wes_config
+from synorchestrator.config import wes_config, eval_config
 from synorchestrator.util import get_json, ctime2datetime, convert_timedelta
 from synorchestrator.wes.client import WESClient
 from wes_client.util import get_status
@@ -25,6 +25,27 @@ from synorchestrator.eval import submission_queue
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+
+def no_queue_run(service, wf_name):
+    """
+    Put a workflow in the queue and immmediately run it.
+
+    :param service:
+    :param wf_name:
+    :return:
+    """
+    # fetch workflow params from config file
+    # use synorchestrator.config.add_eval() to add a workflow to this file
+    wf = eval_config()[wf_name]
+
+    submission_id = create_submission(wes_id=service,
+                                      submission_data={'wf': wf['workflow_url'],
+                                                       'jsonyaml': wf['workflow_jsonyaml'],
+                                                       'attachments': wf['workflow_attachments']},
+                                      wf_name=wf_name,
+                                      wf_type=wf['workflow_type'])
+    run_submission(service, submission_id)
 
 
 def run_submission(wes_id, submission_id):
@@ -98,7 +119,6 @@ def monitor_service(wf_service):
                 'wf_id': submissions[wf_service][run_id]['wf_id'],
                 'run_id': '-',
                 'run_status': 'QUEUED',
-                'wes_id': wf_service,
                 'start_time': '-',
                 'elapsed_time': '-'}
         else:
@@ -116,7 +136,6 @@ def monitor_service(wf_service):
                 'wf_id': submissions[wf_service][run_id]['wf_id'],
                 'run_id': run['run_id'],
                 'run_status': run['state'],
-                'wes_id': wf_service,
                 'start_time': run['start_time'],
                 'elapsed_time': etime}
     return status_dict
@@ -147,20 +166,5 @@ def monitor():
         sys.stdout.flush()
         time.sleep(1)
 
-
-# submission_id = create_submission(wes_id='local',
-#                                   submission_data={'wf': '/home/quokka/git/workflow-service/testdata/md5sum.wdl',
-#                                                    'jsonyaml': 'file:///home/quokka/git/workflow-service/testdata/md5sum.wdl.json',
-#                                                    'attachments': ['file:///home/quokka/git/workflow-service/testdata/md5sum.input']},
-#                   wf_name='wflow0',
-#                   type='cwl')
-# #
-# # print(get_submission_bundle("local", "040804130201818647"))
-# print(run_submission("local", submission_id))
-# # i = get_submissions("local", status='RECEIVED')
-# # print(i)
-# # j = get_json(submission_queue)
-# # monitor()
-#
-#
-# run_submission("local", '040804203516909095')
+# no_queue_run('local', 'wdl_UoM_align')
+# monitor()

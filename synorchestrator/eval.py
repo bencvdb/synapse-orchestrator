@@ -1,14 +1,15 @@
 import logging
+import os
 import datetime as dt
 
 from synorchestrator.util import get_json, save_json
 
 logger = logging.getLogger(__name__)
 
-submission_queue = 'synorchestrator/submission_queue.json'
+submission_queue = os.path.join(os.path.dirname(__file__), 'submission_queue.json')
 
 
-def create_submission(wes_id, submission_data, type='cwl', wf_name='wflow0'):
+def create_submission(wes_id, submission_data, wf_type='cwl', wf_name='wflow0'):
     """
     Submit a new job request to an evaluation queue.
 
@@ -20,7 +21,7 @@ def create_submission(wes_id, submission_data, type='cwl', wf_name='wflow0'):
     submissions.setdefault(wes_id, {})[submission_id] = {'status': 'RECEIVED',
                                                          'data': submission_data,
                                                          'wf_id': wf_name,
-                                                         'type': type}
+                                                         'type': wf_type}
     save_json(submission_queue, submissions)
     logger.info(" Queueing Job for '{}' endpoint:"
                 "\n - submission ID: {}".format(wes_id, submission_id))

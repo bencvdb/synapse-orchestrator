@@ -1,1 +1,105 @@
-{}
+{
+    "local": {
+        "050805202148062630": {
+            "status": "SUBMITTED", 
+            "wf_id": "wdl_UoM_align", 
+            "run": {
+                "elapsed_time": "0h:9m:12s", 
+                "start_time": "Sun Aug  5 20:21:48 2018", 
+                "run_id": "cf1a3c5cfd9940d2bf5fcc312b471c9d"
+            }, 
+            "type": "WDL", 
+            "data": {
+                "wf": "/home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.wdl", 
+                "jsonyaml": "file:///home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.json", 
+                "attachments": []
+            }
+        }, 
+        "050805202128300413": {
+            "status": "SUBMITTED", 
+            "wf_id": "cwl_md5sum", 
+            "run": {
+                "elapsed_time": "0h:0m:2s", 
+                "start_time": "Sun Aug  5 20:21:28 2018", 
+                "run_id": "289a9a8a31184768887b3d13d38f131e"
+            }, 
+            "type": "CWL", 
+            "data": {
+                "wf": "/home/quokka/git/workflow-service/testdata/md5sum.cwl", 
+                "jsonyaml": "file:///home/quokka/git/workflow-service/testdata/md5sum.cwl.json", 
+                "attachments": [
+                    "file:///home/quokka/git/workflow-service/testdata/md5sum.input", 
+                    "file:///home/quokka/git/workflow-service/testdata/dockstore-tool-md5sum.cwl"
+                ]
+            }
+        }, 
+        "050805193212996333": {
+            "status": "SUBMITTED", 
+            "wf_id": "wflow0", 
+            "run": {
+                "elapsed_time": "0h:9m:17s", 
+                "start_time": "Sun Aug  5 19:32:13 2018", 
+                "run_id": "4eae5c025160465186e6f7b96c81e8cc"
+            }, 
+            "type": "cwl", 
+            "data": {
+                "wf": "/home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.wdl", 
+                "jsonyaml": "file:///home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.json", 
+                "attachments": [
+                    "file:///home/quokka/git/workflow-service/testdata/md5sum.input"
+                ]
+            }
+        }
+    }, 
+    "aws-toil-server": {
+        "050805201851333428": {
+            "status": "RECEIVED", 
+            "wf_id": "cwl_md5sum", 
+            "data": {
+                "wf": "/home/quokka/git/workflow-service/testdata/md5sum.cwl", 
+                "jsonyaml": "file:///home/quokka/git/workflow-service/testdata/md5sum.cwl.json", 
+                "attachments": [
+                    "file:///home/quokka/git/workflow-service/testdata/md5sum.input", 
+                    "file:///home/quokka/git/workflow-service/testdata/dockstore-tool-md5sum.cwl"
+                ]
+            }, 
+            "type": "CWL"
+        }, 
+        "050805201905552217": {
+            "status": "SUBMITTED", 
+            "wf_id": "cwl_md5sum", 
+            "run": {
+                "elapsed_time": "1h:46m:9s", 
+                "start_time": "Sun Aug  5 20:19:05 2018", 
+                "run_id": "2552a4878f334835b36e19d6b6c0567d"
+            }, 
+            "data": {
+                "wf": "/home/quokka/git/workflow-service/testdata/md5sum.cwl", 
+                "jsonyaml": "file:///home/quokka/git/workflow-service/testdata/md5sum.cwl.json", 
+                "attachments": [
+                    "file:///home/quokka/git/workflow-service/testdata/md5sum.input", 
+                    "file:///home/quokka/git/workflow-service/testdata/dockstore-tool-md5sum.cwl"
+                ]
+            }, 
+            "type": "CWL"
+        }, 
+        "050805201933065547": {
+            "status": "SUBMITTED", 
+            "wf_id": "cwl_md5sum", 
+            "run": {
+                "elapsed_time": "0h:0m:0s", 
+                "start_time": "Sun Aug  5 20:19:33 2018", 
+                "run_id": "5e84274ddb64493d9d24a5ad34676f3d"
+            }, 
+            "type": "CWL", 
+            "data": {
+                "wf": "/home/quokka/git/workflow-service/testdata/md5sum.cwl", 
+                "jsonyaml": "file:///home/quokka/git/workflow-service/testdata/md5sum.cwl.json", 
+                "attachments": [
+                    "file:///home/quokka/git/workflow-service/testdata/md5sum.input", 
+                    "file:///home/quokka/git/workflow-service/testdata/dockstore-tool-md5sum.cwl"
+                ]
+            }
+        }
+    }
+}

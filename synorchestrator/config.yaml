@@ -1,16 +1,35 @@
 evals:
-  wflow0:
+  cwl_md5sum:
     submission_type: params
     trs_id: dockstore
     version_id: develop
-    workflow_id: github.com/dockstore-testing/md5sum-checker
+    workflow_attachments:
+    - file:///home/quokka/git/workflow-service/testdata/md5sum.input
+    - file:///home/quokka/git/workflow-service/testdata/dockstore-tool-md5sum.cwl
+    workflow_id: ''
+    workflow_jsonyaml: file:///home/quokka/git/workflow-service/testdata/md5sum.cwl.json
     workflow_type: CWL
-  wflow1:
+    workflow_url: /home/quokka/git/workflow-service/testdata/md5sum.cwl
+  wdl_UoM_align:
     submission_type: params
     trs_id: dockstore
     version_id: develop
-    workflow_id: github.com/dockstore-testing/md5sum-checker/wdl
+    workflow_attachments: []
+    workflow_id: ''
+    workflow_jsonyaml: file:///home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.json
     workflow_type: WDL
+    workflow_url: /home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.wdl
+  wdl_md5sum:
+    submission_type: params
+    trs_id: dockstore
+    version_id: develop
+    workflow_attachments:
+    - file:///home/quokka/git/workflow-service/testdata/md5sum.input
+    - file:///home/quokka/git/workflow-service/testdata/dockstore-tool-md5sum.cwl
+    workflow_id: ''
+    workflow_jsonyaml: file:///home/quokka/git/workflow-service/testdata/md5sum.wdl.json
+    workflow_type: WDL
+    workflow_url: /home/quokka/git/workflow-service/testdata/md5sum.wdl
 toolregistries:
   dockstore:
     auth: ''
@@ -21,6 +40,11 @@ workflowservices:
     auth: ''
     auth_type: ''
     host: wes.qr1hi.arvadosapi.com
+    proto: http
+  aws-toil-server:
+    auth: ''
+    auth_type: ''
+    host: 54.193.12.111:8080
     proto: http
   hca-cromwell:
     auth: ''

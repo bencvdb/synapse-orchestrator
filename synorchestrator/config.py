@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-config_path = os.path.abspath('synorchestrator/config.yaml')
+config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
 
 
 def eval_config():
@@ -26,12 +26,15 @@ def wes_config():
     return get_yaml(config_path)['workflowservices']
 
 
-def add_eval(service,
-             submission_type,
-             trs_id,
-             version_id,
-             workflow_id,
-             workflow_type):
+def add_eval(wf_name,
+             wf_type,
+             wf_url,
+             wf_jsonyaml,
+             wf_attachments,
+             submission_type='params',
+             trs_id='dockstore',
+             version_id='develop',
+             wf_id=''):
     """
     Register a Synapse evaluation queue to the orchestrator's
     scope of work.
@@ -41,9 +44,14 @@ def add_eval(service,
     config = {'submission_type': submission_type,
               'trs_id': trs_id,
               'version_id': version_id,
-              'workflow_id': workflow_id,
-              'workflow_type': workflow_type}
-    set_yaml('evals', service, config)
+              'workflow_id': wf_id,
+              'workflow_type': wf_type,
+              'workflow_url': wf_url,
+              'workflow_jsonyaml': wf_jsonyaml,
+              'workflow_attachments': wf_attachments}
+    print(config)
+    print(wf_name)
+    set_yaml('evals', wf_name, config)
 
 
 def add_toolregistry(service, auth, host, proto):
@@ -75,6 +83,7 @@ def add_workflowservice(service, auth, auth_type, host, proto):
 
 def set_yaml(section, service, var2add):
     orchestrator_config = get_yaml(config_path)
+    print(orchestrator_config)
     orchestrator_config.setdefault(section, {})[service] = var2add
     save_yaml(config_path, orchestrator_config)
 
@@ -108,3 +117,10 @@ def show():
               'trs': trs,
               'wes': wes})
     print(display)
+
+
+add_eval(wf_name='wdl_UoM_align',
+         wf_type='WDL',
+         wf_url='/home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.wdl',
+         wf_jsonyaml='file:///home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.json',
+         wf_attachments=[])
