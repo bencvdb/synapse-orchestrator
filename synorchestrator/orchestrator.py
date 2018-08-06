@@ -11,6 +11,7 @@ import sys
 import time
 import os
 import datetime as dt
+from requests.exceptions import ConnectionError
 from IPython.display import display, clear_output
 from synorchestrator.config import wes_config, eval_config
 from synorchestrator.util import get_json, ctime2datetime, convert_timedelta
@@ -122,22 +123,31 @@ def monitor_service(wf_service):
                 'start_time': '-',
                 'elapsed_time': '-'}
         else:
-            run = submissions[wf_service][run_id]['run']
-            client = WESClient(wes_config()[wf_service])
-            run['state'] = client.get_workflow_run_status(run['run_id'])['state']
-            if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
-                etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
-            elif 'elapsed_time' not in run:
-                etime = '0h:0m:0s'
-            else:
-                etime = run['elapsed_time']
-            update_submission_run(wf_service, run_id, 'elapsed_time', etime)
-            status_dict.setdefault(wf_service, {})[run_id] = {
-                'wf_id': submissions[wf_service][run_id]['wf_id'],
-                'run_id': run['run_id'],
-                'run_status': run['state'],
-                'start_time': run['start_time'],
-                'elapsed_time': etime}
+            try:
+                run = submissions[wf_service][run_id]['run']
+                client = WESClient(wes_config()[wf_service])
+                run['state'] = client.get_workflow_run_status(run['run_id'])['state']
+                if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
+                    etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
+                elif 'elapsed_time' not in run:
+                    etime = '0h:0m:0s'
+                else:
+                    etime = run['elapsed_time']
+                update_submission_run(wf_service, run_id, 'elapsed_time', etime)
+                status_dict.setdefault(wf_service, {})[run_id] = {
+                    'wf_id': submissions[wf_service][run_id]['wf_id'],
+                    'run_id': run['run_id'],
+                    'run_status': run['state'],
+                    'start_time': run['start_time'],
+                    'elapsed_time': etime}
+            except ConnectionError:
+                status_dict.setdefault(wf_service, {})[run_id] = {
+                    'wf_id': 'ConnectionError',
+                    'run_id': '-',
+                    'run_status': '-',
+                    'start_time': '-',
+                    'elapsed_time': '-'}
+
     return status_dict
 
 
@@ -166,5 +176,5 @@ def monitor():
         sys.stdout.flush()
         time.sleep(1)
 
-# no_queue_run('local', 'wdl_UoM_align')
+no_queue_run('local', 'cwl_md5sum')
 # monitor()
