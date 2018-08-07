@@ -1,0 +1,16 @@
+language: python
+python: 
+  - '2.7'
+
+before_install:
+- sudo apt-get update -qq
+- pip install toil[all]
+- pip install . --process-dependency-links
+- pip install -r dev-requirements.txt
+
+script:
+  - python setup.py test
+  - flake8 --max-line-length 888 synorchestrator/
+
+after_success:
+  - coveralls
