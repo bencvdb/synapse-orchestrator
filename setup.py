@@ -2,11 +2,11 @@
 # First, we try to use setuptools. If it's not available locally,
 # we fall back on ez_setup.
 try:
-    from setuptools import setup
+    from setuptools import find_packages, setup
 except ImportError:
     from ez_setup import use_setuptools
     use_setuptools()
-    from setuptools import setup
+    from setuptools import find_packages, setup
 
 long_description = ''
 
@@ -24,21 +24,13 @@ with open('requirements.txt') as requirements_file:
 setup(
     name='synapse-orchestrator',
     description='Synapse-based orchestrator for GA4GH workflows',
-    packages=['synorchestrator'],
     url='https://github.com/Sage-Bionetworks/synapse-orchestrator',
     download_url='https://github.com/Sage-Bionetworks/synapse-orchestrator',
     entry_points={
         'console_scripts': 'orchestrate=synorchestrator.__main__:main'
     },
-    package_data={'': ['trs/client.py',
-                       'trs/__init__.py',
-                       'wes/client.py',
-                       'wes/__init__.py',
-                       'utils/setup_run.py',
-                       'config_files/submission_queue.json',
-                       'config_files/stored_templates.json',
-                       'config_files/user_submission_example.json',
-                       'config.yaml']},
+    package_dir={'': 'src'},
+    packages=find_packages(where='src', exclude=['*.test.*']),
     include_package_data=True,
     long_description=long_description,
     install_requires=install_requires,

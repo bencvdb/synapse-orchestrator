@@ -156,9 +156,13 @@ def run_all():
     Check the status of each job per workflow service for status: COMPLETE
     before running the next queued job.
     """
+    # create a dictionary of services
     current_job_state = {}
     for wf_service in wes_config():
         current_job_state[wf_service] = ''
+
+    # check all wfs for a given service for RUNNING/INITing/SUBMITTED (skip if True)
+    # else run the first queue
     for wf_service in wes_config():
         submissions_left = True
         while submissions_left:
