@@ -196,6 +196,7 @@ def monitor_service(wf_service):
     status_dict = {}
     submissions = get_json(QUEUE_PATH)
     for run_id in submissions[wf_service]:
+        sample_name = submissions[wf_service][run_id]['sample']
         if 'run' not in submissions[wf_service][run_id]:
             status_dict.setdefault(wf_service, {})[run_id] = {
                 'wf_id': submissions[wf_service][run_id]['wf_id'],
@@ -207,7 +208,7 @@ def monitor_service(wf_service):
         else:
             try:
                 run = submissions[wf_service][run_id]['run']
-                sample_name = submissions[wf_service][run_id]['sample']
+
                 client = WESClient(wes_config()[wf_service])
                 run['state'] = client.get_workflow_run_status(run['run_id'])['state']
                 if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
