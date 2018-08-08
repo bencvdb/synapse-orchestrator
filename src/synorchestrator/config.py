@@ -16,7 +16,7 @@ def config_path():
     config_loc = os.path.join(os.path.dirname(__file__), 'config_files', 'stored_templates.json')
     # if the file does not exist, create a blank template
     if not os.path.exists(config_loc):
-        with open(config_loc) as f:
+        with open(config_loc, 'w') as f:
             f.write('{"workflows": "",\n'
                     ' "toolregistries": "",\n'
                     ' "workflowservices": ""'

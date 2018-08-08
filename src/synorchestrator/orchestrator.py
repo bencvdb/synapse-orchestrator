@@ -28,7 +28,7 @@ def queue_path():
     queue_loc = os.path.join(os.path.dirname(__file__), 'config_files', 'submission_queue.json')
     # if the file does not exist, create a blank template
     if not os.path.exists(queue_loc):
-        with open(queue_loc) as f:
+        with open(queue_loc, 'w') as f:
             f.write('{}\n')
     return queue_loc
 
