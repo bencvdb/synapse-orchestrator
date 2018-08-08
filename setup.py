@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-import os
 from setuptools import setup
-
-SETUP_DIR = os.path.dirname(__file__)
 
 long_description = ''
 

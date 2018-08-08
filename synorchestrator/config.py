@@ -116,8 +116,8 @@ def show():
     print(display)
 
 
-add_eval(wf_name='wdl_UoM_align',
-         wf_type='WDL',
-         wf_url='/home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.wdl',
-         wf_jsonyaml='file:///home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.json',
-         wf_attachments=[])
+# add_eval(wf_name='wdl_UoM_align',
+#          wf_type='WDL',
+#          wf_url='/home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.wdl',
+#          wf_jsonyaml='file:///home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.json',
+#          wf_attachments=[])
