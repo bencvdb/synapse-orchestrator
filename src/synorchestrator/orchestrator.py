@@ -72,6 +72,17 @@ def update_submission_run(wes_id, submission_id, param, status):
     save_json(QUEUE_PATH, submissions)
 
 
+def set_queue_from_user_json(filepath):
+    # TODO verify terms match between configs
+    sdict = get_json(filepath)
+    for wf_service in sdict:
+        for sample in sdict[wf_service]:
+            wf_name = sdict[wf_service][sample]['wf_name']
+            wf_jsonyaml = sdict[wf_service][sample]['jsonyaml']
+            print('Queueing "{}" on "{}" with data: {}'.format(wf_name, wf_service, sample))
+            queue(wf_service, wf_name, wf_jsonyaml)
+
+
 def queue(service, wf_name, wf_jsonyaml, sample='NA', attach=None):
     """
     Put a workflow in the queue.
