@@ -29,6 +29,7 @@ setup(
     entry_points={
         'console_scripts': 'orchestrate=synorchestrator.__main__:main'
     },
+    package_dir={'': 'synorchestrator'},
     long_description=long_description,
     install_requires=install_requires,
     setup_requires=['pytest-runner'],
