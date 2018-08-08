@@ -15,7 +15,7 @@ from requests.exceptions import ConnectionError
 from IPython.display import display, clear_output
 from wes_client.util import get_status
 
-from synorchestrator.config import wes_config, eval_config
+from synorchestrator.config import wes_config, wf_config
 from synorchestrator.util import ctime2datetime, convert_timedelta
 from synorchestrator.wes.client import WESClient
 from synorchestrator.util import get_json, save_json
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 QUEUE_PATH = os.path.join(os.path.dirname(__file__), 'config_files', 'submission_queue.json')
 
 
-def create_submission(wes_id, submission_data, wf_type='cwl', wf_name='wflow0'):
+def create_submission(wes_id, submission_data, wf_type, wf_name, sample):
     """
     Submit a new job request to an evaluation queue.
 
@@ -39,7 +39,8 @@ def create_submission(wes_id, submission_data, wf_type='cwl', wf_name='wflow0'):
     submissions.setdefault(wes_id, {})[submission_id] = {'status': 'RECEIVED',
                                                          'data': submission_data,
                                                          'wf_id': wf_name,
-                                                         'type': wf_type}
+                                                         'type': wf_type,
+                                                         'sample': sample}
     save_json(QUEUE_PATH, submissions)
     logger.info(" Queueing Job for '{}' endpoint:"
                 "\n - submission ID: {}".format(wes_id, submission_id))
@@ -71,17 +72,20 @@ def update_submission_run(wes_id, submission_id, param, status):
     save_json(QUEUE_PATH, submissions)
 
 
-def queue(service, wf_name, wf_jsonyaml, attach=None):
+def queue(service, wf_name, wf_jsonyaml, sample='NA', attach=None):
     """
-    Put a workflow in the queue and immmediately run it.
+    Put a workflow in the queue.
 
     :param service:
     :param wf_name:
+    :param wf_jsonyaml:
+    :param sample:
+    :param attach:
     :return:
     """
     # fetch workflow params from config file
     # synorchestrator.config.add_workflow() can be used to add a workflow to this file
-    wf = eval_config()[wf_name]
+    wf = wf_config()[wf_name]
 
     if not attach:
         attach = wf['workflow_attachments']
@@ -91,27 +95,23 @@ def queue(service, wf_name, wf_jsonyaml, attach=None):
                                                        'jsonyaml': wf_jsonyaml,
                                                        'attachments': attach},
                                       wf_name=wf_name,
-                                      wf_type=wf['workflow_type'])
+                                      wf_type=wf['workflow_type'],
+                                      sample=sample)
+    return submission_id
 
 
-def no_queue_run(service, wf_name):
+def no_queue_run(service, wf_name, wf_jsonyaml, sample='NA', attach=None):
     """
     Put a workflow in the queue and immmediately run it.
 
     :param service:
     :param wf_name:
+    :param wf_jsonyaml:
+    :param sample:
+    :param attach:
     :return:
     """
-    # fetch workflow params from config file
-    # synorchestrator.config.add_workflow() can be used to add a workflow to this file
-    wf = eval_config()[wf_name]
-
-    submission_id = create_submission(wes_id=service,
-                                      submission_data={'wf': wf['workflow_url'],
-                                                       'jsonyaml': wf['workflow_jsonyaml'],
-                                                       'attachments': wf['workflow_attachments']},
-                                      wf_name=wf_name,
-                                      wf_type=wf['workflow_type'])
+    submission_id = queue(service, wf_name, wf_jsonyaml, sample=sample, attach=attach)
     run_submission(service, submission_id)
 
 
@@ -185,12 +185,14 @@ def monitor_service(wf_service):
             status_dict.setdefault(wf_service, {})[run_id] = {
                 'wf_id': submissions[wf_service][run_id]['wf_id'],
                 'run_id': '-',
+                'sample_name': sample_name,
                 'run_status': 'QUEUED',
                 'start_time': '-',
                 'elapsed_time': '-'}
         else:
             try:
                 run = submissions[wf_service][run_id]['run']
+                sample_name = submissions[wf_service][run_id]['sample']
                 client = WESClient(wes_config()[wf_service])
                 run['state'] = client.get_workflow_run_status(run['run_id'])['state']
                 if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
@@ -203,6 +205,7 @@ def monitor_service(wf_service):
                 status_dict.setdefault(wf_service, {})[run_id] = {
                     'wf_id': submissions[wf_service][run_id]['wf_id'],
                     'run_id': run['run_id'],
+                    'sample_name': sample_name,
                     'run_status': run['state'],
                     'start_time': run['start_time'],
                     'elapsed_time': etime}
@@ -210,6 +213,7 @@ def monitor_service(wf_service):
                 status_dict.setdefault(wf_service, {})[run_id] = {
                     'wf_id': 'ConnectionError',
                     'run_id': '-',
+                    'sample_name': sample_name,
                     'run_status': '-',
                     'start_time': '-',
                     'elapsed_time': '-'}

@@ -46,7 +46,7 @@ def add_workflow(wf_name,
               'workflow_type': wf_type,
               'workflow_url': wf_url,
               'workflow_attachments': wf_attachments}
-    set_yaml('workflows', wf_name, config)
+    set_json('workflows', wf_name, config)
 
 
 def add_toolregistry(service, auth, host, proto):
@@ -59,7 +59,7 @@ def add_toolregistry(service, auth, host, proto):
     config = {'auth': auth,
               'host': host,
               'proto': proto}
-    set_yaml('toolregistries', service, config)
+    set_json('toolregistries', service, config)
 
 
 def add_workflowservice(service, auth, auth_type, host, proto):
@@ -73,10 +73,10 @@ def add_workflowservice(service, auth, auth_type, host, proto):
               'auth_type': auth_type,
               'host': host,
               'proto': proto}
-    set_yaml('workflowservices', service, config)
+    set_json('workflowservices', service, config)
 
 
-def set_yaml(section, service, var2add):
+def set_json(section, service, var2add):
     orchestrator_config = get_json(CONFIG_PATH)
     orchestrator_config.setdefault(section, {})[service] = var2add
     save_json(CONFIG_PATH, orchestrator_config)
@@ -87,14 +87,14 @@ def show():
     Show current application configuration.
     """
     orchestrator_config = get_json(CONFIG_PATH)
-    wfs = '\n'.join('{}:\t{}\t[{}]'.format(k, orchestrator_config['workflows'][k]['workflow_id'], orchestrator_config['workflows'][k]['workflow_type']) for k in orchestrator_config['workflows'])
-    trs = '\n'.join('{}: {}'.format(k, orchestrator_config['toolregistries'][k]['host']) for k in orchestrator_config['toolregistries'])
-    wes = '\n'.join('{}: {}'.format(k, orchestrator_config['workflowservices'][k]['host']) for k in orchestrator_config['workflowservices'])
+    wfs = '\n'.join('{}\t[{}]'.format(k, orchestrator_config['workflows'][k]['workflow_type']) for k in orchestrator_config['workflows'])
+    trs = '\n'.join('{}:\t{}'.format(k, orchestrator_config['toolregistries'][k]['host']) for k in orchestrator_config['toolregistries'])
+    wes = '\n'.join('{}:\t{}'.format(k, orchestrator_config['workflowservices'][k]['host']) for k in orchestrator_config['workflowservices'])
     display = heredoc('''
         Orchestrator Options:
 
         Parametrized Workflows
-        (Queue ID: Workflow ID [Workflow Type])
+        (Workflow Name [Workflow Type])
         ---------------------------------------------------------------------------
         {wfs}
 

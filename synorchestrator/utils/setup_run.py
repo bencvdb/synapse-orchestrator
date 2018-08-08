@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import sys
-import os
 import argparse
 import pkg_resources  # part of setuptools
 import logging
@@ -10,6 +9,9 @@ from synorchestrator.orchestrator import queue
 from synorchestrator.util import get_json
 
 logging.basicConfig(level=logging.INFO)
+
+
+"""Takes a user script and queues the entries inside."""
 
 
 def main(argv=sys.argv[1:]):
