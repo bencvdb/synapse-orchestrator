@@ -34,12 +34,7 @@ def queue_path():
 
 
 def create_submission(wes_id, submission_data, wf_type, wf_name, sample):
-    """
-    Submit a new job request to an evaluation queue.
-
-    Both type and wf_name are optional but could be used with TRS.
-    """
-    submissions = get_json(QUEUE_PATH)
+    submissions = get_json(queue_path())
     submission_id = dt.datetime.now().strftime('%d%m%d%H%M%S%f')
 
     submissions.setdefault(wes_id, {})[submission_id] = {'status': 'RECEIVED',
@@ -47,7 +42,7 @@ def create_submission(wes_id, submission_data, wf_type, wf_name, sample):
                                                          'wf_id': wf_name,
                                                          'type': wf_type,
                                                          'sample': sample}
-    save_json(QUEUE_PATH, submissions)
+    save_json(queue_path(), submissions)
     logger.info(" Queueing Job for '{}' endpoint:"
                 "\n - submission ID: {}".format(wes_id, submission_id))
     return submission_id
@@ -55,30 +50,55 @@ def create_submission(wes_id, submission_data, wf_type, wf_name, sample):
 
 def get_submissions(wes_id, status='RECEIVED'):
     """Return all ids with the requested status."""
-    submissions = get_json(QUEUE_PATH)
+    submissions = get_json(queue_path())
     return [id for id, bundle in submissions[wes_id].items() if bundle['status'] == status]
 
 
 def get_submission_bundle(wes_id, submission_id):
     """Return the submission's info."""
-    return get_json(QUEUE_PATH)[wes_id][submission_id]
+    return get_json(queue_path())[wes_id][submission_id]
 
 
 def update_submission(wes_id, submission_id, param, status):
     """Update the status of a submission."""
-    submissions = get_json(QUEUE_PATH)
+    submissions = get_json(queue_path())
     submissions[wes_id][submission_id][param] = status
-    save_json(QUEUE_PATH, submissions)
+    save_json(queue_path(), submissions)
 
 
 def update_submission_run(wes_id, submission_id, param, status):
     """Update the status of a submission."""
-    submissions = get_json(QUEUE_PATH)
+    submissions = get_json(queue_path())
     submissions[wes_id][submission_id]['run'][param] = status
-    save_json(QUEUE_PATH, submissions)
+    save_json(queue_path(), submissions)
 
 
 def set_queue_from_user_json(filepath):
+    """
+    Intended to take a user json-config file and submit the contents as queued workflows.
+
+    Example:
+
+   {"local":
+       {"NWD119836":
+          {"wf_name": "wdl_UoM_align",
+           "jsonyaml": "file:///home/quokka/git/current_demo/orchestrator/tests/data/NWD119836.json"},
+        "NWD136397":
+          {"wf_name": "wdl_UoM_align",
+           "jsonyaml": "file:///home/quokka/git/current_demo/orchestrator/tests/data/NWD136397.json"}
+   },
+    "aws-toil-server":
+       {"NWD119836":
+          {"wf_name": "wdl_UoM_align",
+           "jsonyaml": "file:///home/quokka/git/current_demo/orchestrator/tests/data/NWD119836.json"},
+        "NWD136397":
+          {"wf_name": "wdl_UoM_align",
+           "jsonyaml": "file:///home/quokka/git/current_demo/orchestrator/tests/data/NWD136397.json"}}}
+
+    This config would submit two samples each (named NWD119836 & NWD136397) to the workflow services:
+    local and aws-toil-server respectively, retrieving configuration details that had been set for those
+    services in stored_templates.json.
+    """
     # TODO verify terms match between configs
     sdict = get_json(filepath)
     for wf_service in sdict:
@@ -200,7 +220,7 @@ def monitor_service(wf_service):
     :return:
     """
     status_dict = {}
-    submissions = get_json(QUEUE_PATH)
+    submissions = get_json(queue_path())
     for run_id in submissions[wf_service]:
         sample_name = submissions[wf_service][run_id]['sample']
         if 'run' not in submissions[wf_service][run_id]:
@@ -250,7 +270,7 @@ def monitor():
 
     while True:
         statuses = []
-        submissions = get_json(QUEUE_PATH)
+        submissions = get_json(queue_path())
 
         for wf_service in submissions:
             statuses.append(monitor_service(wf_service))
