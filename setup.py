@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # First, we try to use setuptools. If it's not available locally,
 # we fall back on ez_setup.
 try:
@@ -29,7 +30,13 @@ setup(
     entry_points={
         'console_scripts': 'orchestrate=synorchestrator.__main__:main'
     },
-    package_dir={'': 'synorchestrator'},
+    package_data={'': ['trs/client.py',
+                       'trs/__init__.py',
+                       'wes/client.py',
+                       'wes/__init__.py',
+                       'submission_queue.json',
+                       'config.yaml']},
+    include_package_data=True,
     long_description=long_description,
     install_requires=install_requires,
     setup_requires=['pytest-runner'],
