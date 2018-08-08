@@ -24,7 +24,13 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-QUEUE_PATH = os.path.join(os.path.dirname(__file__), 'config_files', 'submission_queue.json')
+def queue_path():
+    queue_loc = os.path.join(os.path.dirname(__file__), 'config_files', 'submission_queue.json')
+    # if the file does not exist, create a blank template
+    if not os.path.exists(queue_loc):
+        with open(queue_loc) as f:
+            f.write('{}\n')
+    return queue_loc
 
 
 def create_submission(wes_id, submission_data, wf_type, wf_name, sample):
@@ -261,3 +267,5 @@ def monitor():
         display(status_df)
         sys.stdout.flush()
         time.sleep(1)
+
+set_queue_from_user_json('/home/quokka/git/current_demo/orchestrator/src/synorchestrator/config_files/user_submission_example.json')

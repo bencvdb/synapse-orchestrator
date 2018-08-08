@@ -30,7 +30,7 @@ setup(
         'console_scripts': 'orchestrate=synorchestrator.__main__:main'
     },
     package_dir={'': 'src'},
-    packages=find_packages(where='src', exclude=['*.test.*']),
+    packages=find_packages(where='src', exclude=['*.tests.*']),
     include_package_data=True,
     long_description=long_description,
     install_requires=install_requires,

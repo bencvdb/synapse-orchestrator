@@ -12,19 +12,28 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config_files', 'stored_templates.json')
+def config_path():
+    config_loc = os.path.join(os.path.dirname(__file__), 'config_files', 'stored_templates.json')
+    # if the file does not exist, create a blank template
+    if not os.path.exists(config_loc):
+        with open(config_loc) as f:
+            f.write('{"workflows": "",\n'
+                    ' "toolregistries": "",\n'
+                    ' "workflowservices": ""'
+                    '}\n')
+    return config_loc
 
 
 def wf_config():
-    return get_json(CONFIG_PATH)['workflows']
+    return get_json(config_path())['workflows']
 
 
 def trs_config():
-    return get_json(CONFIG_PATH)['toolregistries']
+    return get_json(config_path())['toolregistries']
 
 
 def wes_config():
-    return get_json(CONFIG_PATH)['workflowservices']
+    return get_json(config_path())['workflowservices']
 
 
 def add_workflow(wf_name,
@@ -77,16 +86,16 @@ def add_workflowservice(service, auth, auth_type, host, proto):
 
 
 def set_json(section, service, var2add):
-    orchestrator_config = get_json(CONFIG_PATH)
+    orchestrator_config = get_json(config_path())
     orchestrator_config.setdefault(section, {})[service] = var2add
-    save_json(CONFIG_PATH, orchestrator_config)
+    save_json(config_path(), orchestrator_config)
 
 
 def show():
     """
     Show current application configuration.
     """
-    orchestrator_config = get_json(CONFIG_PATH)
+    orchestrator_config = get_json(config_path())
     wfs = '\n'.join('{}\t[{}]'.format(k, orchestrator_config['workflows'][k]['workflow_type']) for k in orchestrator_config['workflows'])
     trs = '\n'.join('{}:\t{}'.format(k, orchestrator_config['toolregistries'][k]['host']) for k in orchestrator_config['toolregistries'])
     wes = '\n'.join('{}:\t{}'.format(k, orchestrator_config['workflowservices'][k]['host']) for k in orchestrator_config['workflowservices'])
