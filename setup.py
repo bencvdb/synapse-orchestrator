@@ -1,6 +1,11 @@
-#!/usr/bin/env python
-
-from setuptools import setup
+# First, we try to use setuptools. If it's not available locally,
+# we fall back on ez_setup.
+try:
+    from setuptools import setup
+except ImportError:
+    from ez_setup import use_setuptools
+    use_setuptools()
+    from setuptools import setup
 
 long_description = ''
 
