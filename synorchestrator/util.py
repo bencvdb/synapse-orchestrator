@@ -13,19 +13,6 @@ def heredoc(s, inputs_dict):
     return s[1:] if s.startswith('\n') else s
 
 
-def get_yaml(filepath):
-    try:
-        with open(filepath, 'r') as f:
-            return yaml.load(f)
-    except IOError:
-        logger.exception("No file found.  Please create: %s." % filepath)
-
-
-def save_yaml(filepath, app_config):
-    with open(filepath, 'w') as f:
-        yaml.dump(app_config, f, default_flow_style=False)
-
-
 def get_json(filepath):
     try:
         with open(filepath, 'r') as f:

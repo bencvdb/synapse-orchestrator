@@ -5,36 +5,35 @@ This provides functions to save and get values into these three sections in the 
 """
 import logging
 import os
-from synorchestrator.util import get_yaml, save_yaml, heredoc
+
+from synorchestrator.util import get_json, save_json, heredoc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-config_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config_files', 'stored_templates.json')
 
 
-def eval_config():
-    return get_yaml(config_path)['evals']
+def wf_config():
+    return get_json(CONFIG_PATH)['workflows']
 
 
 def trs_config():
-    return get_yaml(config_path)['toolregistries']
+    return get_json(CONFIG_PATH)['toolregistries']
 
 
 def wes_config():
-    return get_yaml(config_path)['workflowservices']
+    return get_json(CONFIG_PATH)['workflowservices']
 
 
-def add_eval(wf_name,
-             wf_type,
-             wf_url,
-             wf_jsonyaml,
-             wf_attachments,
-             submission_type='params',
-             trs_id='dockstore',
-             version_id='develop',
-             wf_id=''):
+def add_workflow(wf_name,
+                 wf_type,
+                 wf_url,
+                 wf_attachments,
+                 submission_type='params',
+                 trs_id='dockstore',
+                 version_id='develop'):
     """
     Register a Synapse evaluation queue to the orchestrator's
     scope of work.
@@ -44,12 +43,10 @@ def add_eval(wf_name,
     config = {'submission_type': submission_type,
               'trs_id': trs_id,
               'version_id': version_id,
-              'workflow_id': wf_id,
               'workflow_type': wf_type,
               'workflow_url': wf_url,
-              'workflow_jsonyaml': wf_jsonyaml,
               'workflow_attachments': wf_attachments}
-    set_yaml('evals', wf_name, config)
+    set_yaml('workflows', wf_name, config)
 
 
 def add_toolregistry(service, auth, host, proto):
@@ -80,44 +77,37 @@ def add_workflowservice(service, auth, auth_type, host, proto):
 
 
 def set_yaml(section, service, var2add):
-    orchestrator_config = get_yaml(config_path)
+    orchestrator_config = get_json(CONFIG_PATH)
     orchestrator_config.setdefault(section, {})[service] = var2add
-    save_yaml(config_path, orchestrator_config)
+    save_json(CONFIG_PATH, orchestrator_config)
 
 
 def show():
     """
     Show current application configuration.
     """
-    orchestrator_config = get_yaml(config_path)
-    evals = '\n'.join('{}:\t{}\t[{}]'.format(k, orchestrator_config['evals'][k]['workflow_id'], orchestrator_config['evals'][k]['workflow_type']) for k in orchestrator_config['evals'])
+    orchestrator_config = get_json(CONFIG_PATH)
+    wfs = '\n'.join('{}:\t{}\t[{}]'.format(k, orchestrator_config['workflows'][k]['workflow_id'], orchestrator_config['workflows'][k]['workflow_type']) for k in orchestrator_config['workflows'])
     trs = '\n'.join('{}: {}'.format(k, orchestrator_config['toolregistries'][k]['host']) for k in orchestrator_config['toolregistries'])
     wes = '\n'.join('{}: {}'.format(k, orchestrator_config['workflowservices'][k]['host']) for k in orchestrator_config['workflowservices'])
     display = heredoc('''
-        Orchestrator options:
+        Orchestrator Options:
 
-        Workflow Evaluation Queues
-        (queue ID: workflow ID [workflow type])
+        Parametrized Workflows
+        (Queue ID: Workflow ID [Workflow Type])
         ---------------------------------------------------------------------------
-        {evals}
+        {wfs}
 
         Tool Registries
-        (TRS ID: host address)
+        (TRS ID: Host Address)
         ---------------------------------------------------------------------------
         {trs}
 
         Workflow Services
-        (WES ID: host address)
+        (WES ID: Host Address)
         ---------------------------------------------------------------------------
         {wes}
-        ''', {'evals': evals,
+        ''', {'wfs': wfs,
               'trs': trs,
               'wes': wes})
     print(display)
-
-
-# add_eval(wf_name='wdl_UoM_align',
-#          wf_type='WDL',
-#          wf_url='/home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.wdl',
-#          wf_jsonyaml='file:///home/quokka/Desktop/topmed-workflows/aligner/u_of_michigan_aligner/u_of_michigan_aligner.json',
-#          wf_attachments=[])
