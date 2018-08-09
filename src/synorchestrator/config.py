@@ -89,9 +89,12 @@ def add_workflowservice(service, auth, auth_type, host, proto):
 
 
 def set_json(section, service, var2add):
-    orchestrator_config = get_json(config_path())
-    orchestrator_config.setdefault(section, {})[service] = var2add
-    save_json(config_path(), orchestrator_config)
+    try:
+        orchestrator_config = get_json(config_path())
+        orchestrator_config.setdefault(section, {})[service] = var2add
+        save_json(config_path(), orchestrator_config)
+    except AttributeError:
+        raise AttributeError('The config file needs to be set: ' + config_path())
 
 
 def show():

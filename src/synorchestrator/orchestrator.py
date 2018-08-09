@@ -295,5 +295,5 @@ def monitor():
         time.sleep(1)
 
 # set_queue_from_user_json('/home/quokka/git/current_demo/orchestrator/src/synorchestrator/config_files/user_submission_example.json')
-run_all()
-# run_submission(wes_id, submission_id)
+# run_all()
+# run_submission("local", "080808171721087387")
