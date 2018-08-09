@@ -14,7 +14,10 @@ First, setup and install the following in a virtualenv:
 ```
 virtualenv venv && . venv/bin/activate
 
-pip install toil[all]
+https://github.com/DataBiosphere/toil.git
+cd toil
+make prepare && make develop extras=[all]
+cd ..
 
 git clone https://github.com/DailyDreaming/synapse-orchestrator.git
 cd synapse-orchestrator
