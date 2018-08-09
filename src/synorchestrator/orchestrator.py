@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def queue_path():
-    queue_loc = os.path.join(os.path.dirname(__file__), 'config_files', 'submission_queue.json')
+    queue_loc = os.path.join(os.path.expanduser('~'), 'submission_queue.json')
     # if the file does not exist, create a blank template
     if not os.path.exists(queue_loc):
         with open(queue_loc, 'w') as f:
@@ -214,6 +214,7 @@ def run_all():
             status = client.get_workflow_run_status(run['run_id'])['state']
             while status not in ('COMPLETE', 'EXECUTOR_ERROR'):
                 time.sleep(4)
+                print('Current Status is: ' + status)
                 status = client.get_workflow_run_status(run['run_id'])['state']
 
 
@@ -294,6 +295,6 @@ def monitor():
         sys.stdout.flush()
         time.sleep(1)
 
-# set_queue_from_user_json('/home/quokka/git/current_demo/orchestrator/src/synorchestrator/config_files/user_submission_example.json')
-# run_all()
-# run_submission("local", "080808171721087387")
+# set_queue_from_user_json('/home/quokka/git/current_demo/orchestrator/src/tests/data/user_submission_example.json')
+run_all()
+# run_submission("local", "080808180808830195")
