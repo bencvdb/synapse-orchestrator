@@ -13,7 +13,6 @@ import os
 import datetime as dt
 from requests.exceptions import ConnectionError
 from IPython.display import display, clear_output
-from wes_client.util import get_status
 
 from synorchestrator.config import wes_config, wf_config
 from synorchestrator.util import ctime2datetime, convert_timedelta
@@ -51,6 +50,8 @@ def create_submission(wes_id, submission_data, wf_type, wf_name, sample):
 def get_submissions(wes_id, status='RECEIVED'):
     """Return all ids with the requested status."""
     submissions = get_json(queue_path())
+    if wes_id not in submissions:
+        return []
     return [id for id, bundle in submissions[wes_id].items() if bundle['status'] == status]
 
 
@@ -106,7 +107,7 @@ def set_queue_from_user_json(filepath):
             wf_name = sdict[wf_service][sample]['wf_name']
             wf_jsonyaml = sdict[wf_service][sample]['jsonyaml']
             print('Queueing "{}" on "{}" with data: {}'.format(wf_name, wf_service, sample))
-            queue(wf_service, wf_name, wf_jsonyaml)
+            queue(wf_service, wf_name, wf_jsonyaml, sample)
 
 
 def queue(service, wf_name, wf_jsonyaml, sample='NA', attach=None):
@@ -122,10 +123,16 @@ def queue(service, wf_name, wf_jsonyaml, sample='NA', attach=None):
     """
     # fetch workflow params from config file
     # synorchestrator.config.add_workflow() can be used to add a workflow to this file
+    if wf_name not in wf_config():
+        raise ValueError(wf_name + ' not found in configuration file.  '
+                         'To add ' + wf_name + ' to the configuration file, '
+                         'use: synorchestrator.config.add_workflow().')
     wf = wf_config()[wf_name]
 
-    if not attach:
+    if not attach and wf['workflow_attachments']:
         attach = wf['workflow_attachments']
+    else:
+        attach = []
 
     submission_id = create_submission(wes_id=service,
                                       submission_data={'wf': wf['workflow_url'],
@@ -200,15 +207,14 @@ def run_all():
 
     # check all wfs for a given service for RUNNING/INITing/SUBMITTED (skip if True)
     # else run the first queue
+    client = WESClient(wes_config()[wf_service])
     for wf_service in wes_config():
-        submissions_left = True
-        while submissions_left:
-            submissions_left = run_next_queued(wf_service)
-            if not submissions_left:
-                break
-            status = get_status(submissions_left['run_id'])
-            while status != 'COMPLETE':
+        run = run_next_queued(wf_service)
+        if run:
+            status = client.get_workflow_run_status(run['run_id'])['state']
+            while status not in ('COMPLETE', 'EXECUTOR_ERROR'):
                 time.sleep(4)
+                status = client.get_workflow_run_status(run['run_id'])['state']
 
 
 def monitor_service(wf_service):
@@ -288,4 +294,6 @@ def monitor():
         sys.stdout.flush()
         time.sleep(1)
 
-set_queue_from_user_json('/home/quokka/git/current_demo/orchestrator/src/synorchestrator/config_files/user_submission_example.json')
+# set_queue_from_user_json('/home/quokka/git/current_demo/orchestrator/src/synorchestrator/config_files/user_submission_example.json')
+run_all()
+# run_submission(wes_id, submission_id)

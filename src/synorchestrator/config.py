@@ -12,6 +12,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+CONFIG_PATH = os.path.join(os.path.expanduser('~'), 'orchestrator_config.json')
+
+
 def config_path():
     config_loc = os.path.join(os.path.dirname(__file__), 'config_files', 'stored_templates.json')
     # if the file does not exist, create a blank template
@@ -21,7 +24,7 @@ def config_path():
                     ' "toolregistries": "",\n'
                     ' "workflowservices": ""'
                     '}\n')
-    return config_loc
+    return os.path.join(os.path.expanduser('~'), 'orchestrator_config.json')
 
 
 def wf_config():

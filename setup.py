@@ -31,7 +31,6 @@ setup(
     },
     package_dir={'': 'src'},
     packages=find_packages(where='src', exclude=['*.tests.*']),
-    package_data={'': ['/home/quokka/git/current_demo/orchestrator/src/synorchestrator/config_files/stored_templates.json']},
     include_package_data=True,
     long_description=long_description,
     install_requires=install_requires,
