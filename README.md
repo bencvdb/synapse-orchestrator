@@ -10,6 +10,7 @@ This application serves as a "workflow orchestrator" for GA4GH-style workflows, 
 
 ## Install and Run an Example
 
+First, setup and install the following in a virtualenv:
 ```
 virtualenv venv && . venv/bin/activate
 
