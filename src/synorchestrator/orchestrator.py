@@ -16,7 +16,7 @@ from IPython.display import display, clear_output
 
 from synorchestrator.config import wes_config, wf_config
 from synorchestrator.util import ctime2datetime, convert_timedelta
-from synorchestrator.wes.client import WESClient
+from wes_client.util import WESClient
 from synorchestrator.util import get_json, save_json
 
 logging.basicConfig(level=logging.DEBUG)
