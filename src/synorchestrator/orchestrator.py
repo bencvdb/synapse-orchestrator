@@ -240,8 +240,8 @@ def monitor_service(wf_service):
                 run = submissions[wf_service][run_id]['run']
 
                 client = WESClient(wes_config()[wf_service])
-                run['state'] = client.get_run_status(run['workflow_id'])['state']
-                if run['state'] in ['QUEUED', 'queued', 'INITIALIZING', 'initializing', 'RUNNING', 'running']:
+                run['state'] = client.get_run_status(run['workflow_id'])['state'].upper()
+                if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
                     etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
                 elif 'elapsed_time' not in run:
                     etime = '0h:0m:0s'
