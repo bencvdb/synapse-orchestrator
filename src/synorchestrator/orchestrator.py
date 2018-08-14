@@ -204,11 +204,16 @@ def run_all():
     """
     services = services_w_wfs_left2run()
     while services:
-        for service in services:
-            if service_ready(service):
-                received_submissions = get_submissions(service, status='RECEIVED')
-                run_submission(service, received_submissions[0])
-        services = services_w_wfs_left2run()
+        print('Services left to run: ' + str(services))
+        try:
+            for service in services:
+                if service_ready(service):
+                    received_submissions = get_submissions(service, status='RECEIVED')
+                    run_submission(service, received_submissions[0])
+            services = services_w_wfs_left2run()
+        except ValueError:
+            print('What the hell... ')
+        time.sleep(8)
 
 
 def monitor_service(wf_service):
