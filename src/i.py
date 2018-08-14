@@ -7,7 +7,7 @@ from synorchestrator.config import wes_config
 
 # run_submission("Argon-Globus", "140814152850149946")
 
-# run_all()
+run_all()
 
 
 # ,
@@ -30,6 +30,6 @@ from synorchestrator.config import wes_config
 #   }
 
 
-client = WESClient(wes_config()["Argon-Globus"])
-i = client.get_run_status("140814152850127827")['state']
-print(i)
+# client = WESClient(wes_config()["Argon-Globus"])
+# i = client.get_run_status("3a88e3f2c25b7d5b-218dfd90703970fe")
+# print(i)

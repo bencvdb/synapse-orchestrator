@@ -102,7 +102,6 @@ def set_queue_from_user_json(filepath):
     """
     # TODO verify terms match between configs
     sdict = get_json(filepath)
-    print(sdict)
     for wf_service in sdict:
         for sample in sdict[wf_service]:
             wf_name = sdict[wf_service][sample]['wf_name']
@@ -205,7 +204,6 @@ def run_all():
     """
     services = services_w_wfs_left2run()
     while services:
-        print('Services left to run: ' + str(services))
         try:
             for service in services:
                 if service_ready(service):
@@ -213,7 +211,7 @@ def run_all():
                     run_submission(service, received_submissions[0])
             services = services_w_wfs_left2run()
         except ValueError:
-            print('What the hell... ')
+            pass
         time.sleep(8)
 
 
@@ -242,8 +240,8 @@ def monitor_service(wf_service):
                 run = submissions[wf_service][run_id]['run']
 
                 client = WESClient(wes_config()[wf_service])
-                run['state'] = client.get_run_status(run['run_id'])['state']
-                if run['state'] in ['QUEUED', 'queued', 'INITIALIZING', 'RUNNING']:
+                run['state'] = client.get_run_status(run['workflow_id'])['state']
+                if run['state'] in ['QUEUED', 'queued', 'INITIALIZING', 'initializing', 'RUNNING', 'running']:
                     etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
                 elif 'elapsed_time' not in run:
                     etime = '0h:0m:0s'
@@ -253,7 +251,7 @@ def monitor_service(wf_service):
                 update_submission_run(wf_service, run_id, 'elapsed_time', etime)
                 status_dict.setdefault(wf_service, {})[run_id] = {
                     'wf_id': submissions[wf_service][run_id]['wf_id'],
-                    'run_id': run['run_id'],
+                    'run_id': run['workflow_id'],
                     'sample_name': sample_name,
                     'run_status': run['state'],
                     'start_time': run['start_time'],
