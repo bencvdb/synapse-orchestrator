@@ -19,15 +19,13 @@ cd toil
 make prepare && make develop extras=[all]
 cd ..
 
-git clone https://github.com/DailyDreaming/synapse-orchestrator.git
-cd synapse-orchestrator
-git checkout wes-refactor
+https://github.com/DailyDreaming/orchestrator.git
+cd orchestrator
 pip install . --process-dependency-links && pip install -r dev-requirements.txt
 cd ..
 
 git clone https://github.com/common-workflow-language/workflow-service.git
 cd workflow-service
-git checkout symlinksNutil
 pip install . --process-dependency-links && pip install -r dev-requirements.txt
 cd ..
 ```
