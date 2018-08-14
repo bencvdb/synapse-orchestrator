@@ -14,12 +14,12 @@ First, setup and install the following in a virtualenv:
 ```
 virtualenv venv && . venv/bin/activate
 
-https://github.com/DataBiosphere/toil.git
+git clone https://github.com/DataBiosphere/toil.git
 cd toil
 make prepare && make develop extras=[all]
 cd ..
 
-https://github.com/DailyDreaming/orchestrator.git
+git clone https://github.com/DailyDreaming/orchestrator.git
 cd orchestrator
 pip install . --process-dependency-links && pip install -r dev-requirements.txt
 cd ..
