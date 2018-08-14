@@ -16,7 +16,7 @@ from IPython.display import display, clear_output
 
 from synorchestrator.config import wes_config, wf_config
 from synorchestrator.util import ctime2datetime, convert_timedelta
-from wes_client.util import WESClient
+from synorchestrator.wes.client import WESClient
 from synorchestrator.util import get_json, save_json
 
 logging.basicConfig(level=logging.DEBUG)
@@ -102,6 +102,7 @@ def set_queue_from_user_json(filepath):
     """
     # TODO verify terms match between configs
     sdict = get_json(filepath)
+    print(sdict)
     for wf_service in sdict:
         for sample in sdict[wf_service]:
             wf_name = sdict[wf_service][sample]['wf_name']
