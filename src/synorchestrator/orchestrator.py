@@ -171,9 +171,9 @@ def run_submission(wes_id, submission_id):
                 .format(wes_id, submission_id))
 
     client = WESClient(wes_config()[wes_id])
-    run_data = client.run_workflow(submission['data']['wf'],
-                                   submission['data']['jsonyaml'],
-                                   submission['data']['attachments'])
+    run_data = client.run(submission['data']['wf'],
+                          submission['data']['jsonyaml'],
+                          submission['data']['attachments'])
     run_data['start_time'] = dt.datetime.now().ctime()
     update_submission(wes_id, submission_id, 'run', run_data)
     update_submission(wes_id, submission_id, 'status', 'SUBMITTED')
@@ -211,11 +211,11 @@ def run_all():
     for wf_service in wes_config():
         run = run_next_queued(wf_service)
         if run:
-            status = client.get_workflow_run_status(run['run_id'])['state']
+            status = client.get_run_status(run['run_id'])['state']
             while status not in ('COMPLETE', 'EXECUTOR_ERROR'):
                 time.sleep(4)
                 print('Current Status is: ' + status)
-                status = client.get_workflow_run_status(run['run_id'])['state']
+                status = client.get_run_status(run['run_id'])['state']
 
 
 def monitor_service(wf_service):
@@ -243,7 +243,7 @@ def monitor_service(wf_service):
                 run = submissions[wf_service][run_id]['run']
 
                 client = WESClient(wes_config()[wf_service])
-                run['state'] = client.get_workflow_run_status(run['run_id'])['state']
+                run['state'] = client.get_run_status(run['run_id'])['state']
                 if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
                     etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
                 elif 'elapsed_time' not in run:
@@ -296,5 +296,5 @@ def monitor():
         time.sleep(1)
 
 # set_queue_from_user_json('/home/quokka/git/current_demo/orchestrator/src/tests/data/user_submission_example.json')
-run_all()
+# run_all()
 # run_submission("local", "080808180808830195")
