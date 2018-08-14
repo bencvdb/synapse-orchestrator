@@ -180,19 +180,6 @@ def run_submission(wes_id, submission_id):
     return run_data
 
 
-def run_next_queued(wf_service):
-    """
-    Run the next submission slated for a single WES endpoint.
-
-    Return None if no submissions are queued.
-    """
-    queued_submissions = get_submissions(wf_service, status='RECEIVED')
-    if not queued_submissions:
-        return False
-    for submssn_id in sorted(queued_submissions):
-        return run_submission(wf_service, submssn_id)
-
-
 def run_all():
     """
     Run all jobs with the status: RECEIVED in the submission queue.
@@ -209,13 +196,19 @@ def run_all():
     # else run the first queue
     client = WESClient(wes_config()[wf_service])
     for wf_service in wes_config():
-        run = run_next_queued(wf_service)
-        if run:
+        # check if any are still running
+        if get_submissions(wf_service, status='SUBMITTED'):
+            continue
+        # check if any are still slated to run
+        received_submissions = get_submissions(wf_service, status='RECEIVED')
+        if not received_submissions:
+            continue
+        run = run_submission(wf_service, received_submissions[0])
+        status = client.get_run_status(run['run_id'])['state']
+        while status not in ('COMPLETE', 'EXECUTOR_ERROR', 'ok'):
+            time.sleep(4)
+            print('Current Status is: ' + status)
             status = client.get_run_status(run['run_id'])['state']
-            while status not in ('COMPLETE', 'EXECUTOR_ERROR'):
-                time.sleep(4)
-                print('Current Status is: ' + status)
-                status = client.get_run_status(run['run_id'])['state']
 
 
 def monitor_service(wf_service):
@@ -244,11 +237,12 @@ def monitor_service(wf_service):
 
                 client = WESClient(wes_config()[wf_service])
                 run['state'] = client.get_run_status(run['run_id'])['state']
-                if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
+                if run['state'] in ['QUEUED', 'queued', 'INITIALIZING', 'RUNNING']:
                     etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
                 elif 'elapsed_time' not in run:
                     etime = '0h:0m:0s'
                 else:
+                    update_submission(wf_service, run_id, 'status', run['state'])
                     etime = run['elapsed_time']
                 update_submission_run(wf_service, run_id, 'elapsed_time', etime)
                 status_dict.setdefault(wf_service, {})[run_id] = {
@@ -293,7 +287,7 @@ def monitor():
         os.system('clear')
         display(status_df)
         sys.stdout.flush()
-        time.sleep(1)
+        time.sleep(2)
 
 # set_queue_from_user_json('/home/quokka/git/current_demo/orchestrator/src/tests/data/user_submission_example.json')
 # run_all()
