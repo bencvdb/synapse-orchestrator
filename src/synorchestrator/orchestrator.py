@@ -180,6 +180,21 @@ def run_submission(wes_id, submission_id):
     return run_data
 
 
+def services_w_wfs_left2run():
+    services = []
+    for wf_service in wes_config():
+        received_submissions = get_submissions(wf_service, status='RECEIVED')
+        if received_submissions:
+            services.append(wf_service)
+    return services
+
+
+def service_ready(service):
+    if get_submissions(service, status='SUBMITTED'):
+        return False
+    return True
+
+
 def run_all():
     """
     Run all jobs with the status: RECEIVED in the submission queue.
@@ -187,28 +202,13 @@ def run_all():
     Check the status of each job per workflow service for status: COMPLETE
     before running the next queued job.
     """
-    # create a dictionary of services
-    current_job_state = {}
-    for wf_service in wes_config():
-        current_job_state[wf_service] = ''
-
-    # check all wfs for a given service for RUNNING/INITing/SUBMITTED (skip if True)
-    # else run the first queue
-    client = WESClient(wes_config()[wf_service])
-    for wf_service in wes_config():
-        # check if any are still running
-        if get_submissions(wf_service, status='SUBMITTED'):
-            continue
-        # check if any are still slated to run
-        received_submissions = get_submissions(wf_service, status='RECEIVED')
-        if not received_submissions:
-            continue
-        run = run_submission(wf_service, received_submissions[0])
-        status = client.get_run_status(run['run_id'])['state']
-        while status not in ('COMPLETE', 'EXECUTOR_ERROR', 'ok'):
-            time.sleep(4)
-            print('Current Status is: ' + status)
-            status = client.get_run_status(run['run_id'])['state']
+    services = services_w_wfs_left2run()
+    while services:
+        for service in services:
+            if service_ready(service):
+                received_submissions = get_submissions(service, status='RECEIVED')
+                run_submission(service, received_submissions[0])
+        services = services_w_wfs_left2run()
 
 
 def monitor_service(wf_service):
