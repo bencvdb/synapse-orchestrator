@@ -134,7 +134,7 @@ class WESClient(object):
         :param host: Port where the post request will be sent and the wes server listens at (default 8080)
         :return: The body of the get result as a dictionary.
         """
-        postresult = requests.get("%s://%s/%s/service-info" % (self.proto, self.host, self.wespath),
+        postresult = requests.get("%s://%s/%sservice-info" % (self.proto, self.host, self.wespath),
                                   headers=self.auth)
         return wes_reponse(postresult)
 
@@ -150,7 +150,7 @@ class WESClient(object):
         :param host: Port where the post request will be sent and the wes server listens at (default 8080)
         :return: The body of the get result as a dictionary.
         """
-        postresult = requests.get("%s://%s/%s/%s" % (self.proto, self.host, self.wespath, self.wfparam),
+        postresult = requests.get("%s://%s/%s%s" % (self.proto, self.host, self.wespath, self.wfparam),
                                   headers=self.auth)
         return wes_reponse(postresult)
 
@@ -170,13 +170,13 @@ class WESClient(object):
         if self.version == '1':
             attachments = list(expand_globs(attachments))
             parts = build_wes_request(wf, jsonyaml, attachments)
-            postresult = requests.post("%s://%s/%s/%s" % (self.proto, self.host, self.wespath, self.wfparam),
+            postresult = requests.post("%s://%s/%s%s" % (self.proto, self.host, self.wespath, self.wfparam),
                                        files=parts,
                                        headers=self.auth)
         else:
             if jsonyaml.startswith('file://'):
                 jsonyaml = jsonyaml[7:]
-            postresult = requests.post("%s://%s/%s/%s" % (self.proto, self.host, self.wespath, self.wfparam),
+            postresult = requests.post("%s://%s/%s%s" % (self.proto, self.host, self.wespath, self.wfparam),
                                        data=json.dumps(json.load(open(jsonyaml))),
                                        headers=self.auth)
         return wes_reponse(postresult)
@@ -191,7 +191,7 @@ class WESClient(object):
         :param host: Port where the post request will be sent and the wes server listens at (default 8080)
         :return: The body of the delete result as a dictionary.
         """
-        postresult = requests.delete("%s://%s/%s/%s/%s" % (self.proto, self.host, self.wespath, self.wfparam, run_id),
+        postresult = requests.delete("%s://%s/%s%s/%s" % (self.proto, self.host, self.wespath, self.wfparam, run_id),
                                      headers=self.auth)
         return wes_reponse(postresult)
 
@@ -205,7 +205,7 @@ class WESClient(object):
         :param host: Port where the post request will be sent and the wes server listens at (default 8080)
         :return: The body of the get result as a dictionary.
         """
-        postresult = requests.get("%s://%s/%s/%s/%s" % (self.proto, self.host, self.wespath, self.wfparam, run_id),
+        postresult = requests.get("%s://%s/%s%s/%s" % (self.proto, self.host, self.wespath, self.wfparam, run_id),
                                   headers=self.auth)
         return wes_reponse(postresult)
 
@@ -219,6 +219,6 @@ class WESClient(object):
         :param host: Port where the post request will be sent and the wes server listens at (default 8080)
         :return: The body of the get result as a dictionary.
         """
-        postresult = requests.get("%s://%s/%s/%s/%s/status" % (self.proto, self.host, self.wespath, self.wfparam, run_id),
+        postresult = requests.get("%s://%s/%s%s/%s/status" % (self.proto, self.host, self.wespath, self.wfparam, run_id),
                                   headers=self.auth)
         return wes_reponse(postresult)
