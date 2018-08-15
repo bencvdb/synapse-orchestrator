@@ -48,7 +48,7 @@ Write a config at `~/orchestrator_config.json`, for example:
             "trs_id": "dockstore", 
             "version_id": "develop", 
             "workflow_type": "WDL"
-        }, 
+        }
     }, 
     "workflowservices": {
         "local": {
