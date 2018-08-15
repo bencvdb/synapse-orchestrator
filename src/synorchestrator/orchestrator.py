@@ -208,7 +208,10 @@ def run_all():
             for service in services:
                 if service_ready(service):
                     received_submissions = get_submissions(service, status='RECEIVED')
-                    run_submission(service, received_submissions[0])
+                    try:
+                        run_submission(service, received_submissions[0])
+                    except ConnectionError:
+                        pass
             services = services_w_wfs_left2run()
         except ValueError:
             pass
@@ -240,7 +243,11 @@ def monitor_service(wf_service):
                 run = submissions[wf_service][run_id]['run']
 
                 client = WESClient(wes_config()[wf_service])
-                run['state'] = client.get_run_status(run['workflow_id'])['state'].upper()
+                try:
+                    wf_id = run['workflow_id']
+                except KeyError:
+                    wf_id = run['run_id']
+                run['state'] = client.get_run_status(wf_id)['state'].upper()
                 if run['state'] in ['QUEUED', 'INITIALIZING', 'RUNNING']:
                     etime = convert_timedelta(dt.datetime.now() - ctime2datetime(run['start_time']))
                 elif 'elapsed_time' not in run:
@@ -251,7 +258,7 @@ def monitor_service(wf_service):
                 update_submission_run(wf_service, run_id, 'elapsed_time', etime)
                 status_dict.setdefault(wf_service, {})[run_id] = {
                     'wf_id': submissions[wf_service][run_id]['wf_id'],
-                    'run_id': run['workflow_id'],
+                    'run_id': wf_id,
                     'sample_name': sample_name,
                     'run_status': run['state'],
                     'start_time': run['start_time'],
