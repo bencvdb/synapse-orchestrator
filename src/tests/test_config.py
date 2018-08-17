@@ -1,139 +1,88 @@
-# import logging
-# import os
-# import pytest
-# import yaml
-# import textwrap
-#
-# from synorchestrator import config
-#
-# logging.basicConfig(level=logging.DEBUG)
-# logger = logging.getLogger(__name__)
-#
-#
-# @pytest.fixture(scope='function')
-# def mock_orchestratorconfig(tmpdir):
-#     # a mocked config file for a the orchestrator app
-#     logger.info("[setup] mock orchestrator config file, create local file")
-#
-#     mock_config_text = """
-#     evals:
-#       - 123
-#       - 456
-#
-#     toolregistries:
-#       - trs1
-#       - trs2
-#
-#     workflowservices:
-#       - wes1
-#       - wes2
-#     """
-#     mock_config_file = tmpdir.join('.orchestratorConfig')
-#     logger.debug("writing config file: {}".format(str(mock_config_file)))
-#     mock_config_file.write(textwrap.dedent(mock_config_text))
-#
-#     # point global variable to mock config
-#     user_config_file = config.CONFIG_PATH
-#     config.CONFIG_PATH = str(mock_config_file)
-#
-#     yield mock_config_file
-#
-#     # reset global variable
-#     config.CONFIG_PATH = user_config_file
-#     logger.info("[teardown] mock orchestrator config file, remove file")
-#
-#
-# def test__get_orchestrator_config(mock_orchestratorconfig):
-#     # GIVEN an orchestrator config file exists
-#
-#     # WHEN the configuration data in the file is loaded
-#     test_config = config._get_orchestrator_config()
-#
-#     # THEN the returned object is correctly parsed from the YAML stream
-#     assert(
-#         test_config == {
-#             'evals': [123, 456],
-#             'toolregistries': ['trs1', 'trs2'],
-#             'workflowservices': ['wes1', 'wes2']
-#         }
-#     )
-#
-# def test__get_orchestrator_config_no_config_file(tmpdir):
-#     # GIVEN no orchestrator config exists
-#     mock_user_home = tmpdir
-#     mock_config_file = os.path.join(
-#         str(mock_user_home),
-#         '.orchestratorConfig'
-#     )
-#
-#     # point global variable to mock config
-#     user_config_file = config.CONFIG_PATH
-#     config.CONFIG_PATH = mock_config_file
-#
-#     # WHEN the configuration data in the noexsistent file is loaded
-#     test_config = config._get_orchestrator_config()
-#
-#     # THEN an empty object is returned
-#     assert(test_config == {})
-#
-#     config.CONFIG_PATH = user_config_file
-#
-#
-# def test__save_orchestrator_config(tmpdir):
-#     # GIVEN an orchestrator config file exists
-#     mock_config_file = mock_orchestratorconfig(tmpdir).next()
-#
-#     # WHEN updated configuration data is written to the file
-#     config._save_orchestrator_config({'foo': 'bar'})
-#
-#     # THEN the file should contain the correct YAML configuration
-#     mock_config_text = """foo: bar\n"""
-#     with open(str(mock_config_file), 'r') as f:
-#         test_config_text = f.read()
-#
-#     assert(test_config_text == mock_config_text)
-#
-#
-# def test_add_eval(tmpdir):
-#     # GIVEN an orchestrator config file exists
-#     mock_config_file = mock_orchestratorconfig(tmpdir).next()
-#
-#     # WHEN an evaluation queue is added to the configuration of the
-#     # workflow orchestrator app
-#     config.add_workflow(42)
-#
-#     # THEN the evaluation queue ID should be stored in the list
-#     with open(str(mock_config_file), 'r') as f:
-#         test_config = yaml.load(f)
-#
-#     assert(42 in test_config['evals'])
-#
-#
-# def test_add_toolregistry(tmpdir):
-#     # GIVEN an orchestrator config file exists
-#     mock_config_file = mock_orchestratorconfig(tmpdir).next()
-#
-#     # WHEN a TRS endpoint is added to the configuration of the
-#     # workflow orchestrator app
-#     config.add_toolregistry('Dockstore')
-#
-#     # THEN the TRS ID should be stored in the list
-#     with open(str(mock_config_file), 'r') as f:
-#         test_config = yaml.load(f)
-#
-#     assert('Dockstore' in test_config['toolregistries'])
-#
-#
-# def test_add_workflowservice(tmpdir):
-#     # GIVEN an orchestrator config file exists
-#     mock_config_file = mock_orchestratorconfig(tmpdir).next()
-#
-#     # WHEN a WES endpoint is added to the configuration of the
-#     # workflow orchestrator app
-#     config.add_workflowservice('workflow-service')
-#
-#     # THEN the WES ID should be stored in the list
-#     with open(str(mock_config_file), 'r') as f:
-#         test_config = yaml.load(f)
-#
-#     assert('workflow-service' in test_config['workflowservices'])
+#!/usr/bin/env python
+
+import unittest
+import os
+import json
+from synorchestrator import config, util
+
+
+class ConfigTests(unittest.TestCase):
+
+    def setUp(self):
+        super(ConfigTests, self).setUp()
+        self.config_loc = os.path.join(os.path.expanduser('~'), 'test_orchestrator_config.json')
+        if os.path.exists(self.config_loc):
+            raise RuntimeError('Please move your orchestrator_config.json')
+
+
+    def tearDown(self):
+        super(ConfigTests, self).tearDown()
+
+        try:
+            os.remove(self.config_loc)
+        except OSError:
+            pass
+
+    def testConfigPathWritesFile(self):
+        """Make sure that if 'orchestrator_config.json' does not exist, config_path() will create one."""
+        # Check that it doesnt exist
+        expected_loc = self.config_loc
+        self.assertFalse(os.path.isfile(expected_loc))
+        returned_loc = config.config_path(self.config_loc)  # Should write file.
+        self.assertEqual(expected_loc, returned_loc)
+        self.assertTrue(os.path.isfile(returned_loc))
+        with open(config.config_path(self.config_loc), 'r') as f:
+            self.assertEqual(f.read(), '{"workflows": {},\n'
+                                        ' "toolregistries": {},\n'
+                                        ' "workflowservices": {}'
+                                        '}\n')
+
+    def testConfigPathFindsFile(self):
+        """Make sure that config_path() finds the appropriate file."""
+        with open(self.config_loc, 'w') as f:
+            f.write('test')
+
+        with open(config.config_path(self.config_loc), 'r') as f:
+            self.assertEqual(f.read(), 'test')
+
+    def testConfigs(self):
+        """
+        Make sure that the various config fetching functions  reads the right data from the config file.
+
+        This test checks that the following functions return as expected:
+            config.wf_config()
+            config.trs_config()
+            config.wes_config()
+        """
+        config_entries = {'workflows': config.wf_config,
+                          'toolregistries': config.trs_config,
+                          'workflowservices': config.wes_config}
+
+        config.config_path(self.config_loc)  # Write the empty file.
+        for entry, get_func in config_entries.items():
+            config_file = util.get_json(self.config_loc)
+            config_file[entry] = entry  # X_config() returns whatever is stored here.
+            util.save_json(self.config_loc, config_file)
+            self.assertEqual(get_func(), entry)
+
+    def testAddWorkflow(self):
+        """Test that add_workflow() adds entries to the config properly."""
+        config.config_path(self.config_loc)  # Write the empty file.
+        config.add_workflow('cactus',
+                            'Toil',
+                            'wf_url',
+                            'workflow_attachments',
+                            'submission_type',
+                            'trs_id',
+                            'version_id')
+        config_file = util.get_json(self.config_loc)
+
+        self.assertTrue('workflows' in config_file)
+        self.assertTrue('cactus' in config_file['workflows'])
+        var_name = config_file['workflows']['cactus']
+        self.assertEqual(var_name['submission_type'], 'submission_type')
+        self.assertEqual(var_name['trs_id'], 'trs_id')
+        self.assertEqual(var_name['version_id'], 'version_id')
+        self.assertEqual(var_name['workflow_url'], 'wf_url')
+        self.assertEqual(var_name['workflow_attachments'], 'workflow_attachments')
+        self.assertEqual(var_name['workflow_type'], 'Toil')
