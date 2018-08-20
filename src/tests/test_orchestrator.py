@@ -23,18 +23,19 @@ class OrchestratorTests(unittest.TestCase):
         """Make sure that if 'submission_queue.json' does not exist, queue_path() will create one."""
         expected_loc = self.queue_loc
         self.assertFalse(os.path.isfile(expected_loc))
-        returned_loc = orchestrator.queue_path()  # Should write file.
+        orch = orchestrator.Orchestrator()
+        returned_loc = orch.queue_path  # Should write file.
         self.assertEqual(expected_loc, returned_loc)
         self.assertTrue(os.path.isfile(returned_loc))
-        with open(orchestrator.queue_path(), 'r') as f:
+        with open(orch.queue_path, 'r') as f:
             self.assertEqual(f.read(), '{}\n')
 
     def testQueuePathFindsFile(self):
         """Make sure that queue_path() finds the appropriate file."""
         with open(self.queue_loc, 'w') as f:
             f.write('test')
-
-        with open(orchestrator.queue_path(), 'r') as f:
+        orch = orchestrator.Orchestrator()
+        with open(orch.queue_path, 'r') as f:
             self.assertEqual(f.read(), 'test')
 
     def testCreateSubmission(self):
@@ -48,8 +49,10 @@ class OrchestratorTests(unittest.TestCase):
             submissions[service][pre_id] = pre_id
         pre_len = len(submissions[service])
 
+        orch = orchestrator.Orchestrator()
+
         util.save_json(self.queue_loc, submissions)
-        new_id = orchestrator.create_submission(service, 'data', 'wf_type', 'wf_name', 'sample')
+        new_id = orch.create_submission(service, 'data', 'wf_type', 'wf_name', 'sample')
         submissions = util.get_json(self.queue_loc)
 
         for pre_id in presubmit_ids:

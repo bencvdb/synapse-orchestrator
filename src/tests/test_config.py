@@ -27,7 +27,6 @@ class ConfigTests(unittest.TestCase):
             except OSError:
                 pass
 
-    #  TODO: Do I skip testing the default writing functionality??
     def testConfigInitWritesDefaultLoc(self):
         """Test that Config() writes the default json to the default location."""
         self.assertFalse(os.path.exists(self.default_loc))
