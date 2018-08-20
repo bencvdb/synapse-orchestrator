@@ -11,12 +11,13 @@ from synorchestrator.util import get_json, save_json, heredoc
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class Config():
 
-    def __init__(self, config_loc=None):
+    def __init__(self, config_loc=""):
         self.config_loc = self._create_config(config_loc)
 
-    def _create_config(self, config_loc=None):
+    def _create_config(self, given=""):
         """
         Create a config file if one does not exist.
 
@@ -24,7 +25,7 @@ class Config():
         It will only create the config file if it does not already exist. This allows the user the specify a location
         in the init which could point to an existing file or the location where they want a new one to be created.
         """
-        config_loc = config_loc or os.path.join(os.path.expanduser('~'), 'orchestrator_config.json')
+        config_loc = given or os.path.join(os.path.expanduser('~'), 'orchestrator_config.json')
         if not os.path.exists(config_loc):
             with open(config_loc, 'w') as f:
                 f.write('{"workflows": {},\n'
@@ -37,18 +38,14 @@ class Config():
     def config_path(self):
         return self.config_loc
 
-
     def wf_config(self):
         return get_json(self.config_path)['workflows']
-
 
     def trs_config(self):
         return get_json(self.config_path)['toolregistries']
 
-
     def wes_config(self):
         return get_json(self.config_path)['workflowservices']
-
 
     def add_workflow(self,
                      wf_name,
@@ -85,7 +82,6 @@ class Config():
                   'proto': proto}
         self.set_json('toolregistries', service, config)
 
-
     def add_workflowservice(self, service, auth, client, host, proto):
         """
         Register a Workflow Execution Service endpoint to the
@@ -99,7 +95,6 @@ class Config():
                   'client': client}
         self.set_json('workflowservices', service, config)
 
-
     def set_json(self, section, service, var2add):
         try:
             orchestrator_config = get_json(self.config_path)
@@ -107,7 +102,6 @@ class Config():
             save_json(self.config_path, orchestrator_config)
         except AttributeError:
             raise AttributeError('The config file needs to be set: ' + self.config_path)
-
 
     def show(self):
         """

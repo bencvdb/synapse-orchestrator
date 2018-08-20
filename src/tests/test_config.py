@@ -63,7 +63,6 @@ class ConfigTests(unittest.TestCase):
         with open(c.config_path, 'r') as f:
             self.assertEqual(f.read(), 'test')
 
-    # Here below need to be reworked.
     def testConfigs(self):
         """
         Make sure that the various config fetching functions reads the right data from the config file.
