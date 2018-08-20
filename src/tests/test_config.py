@@ -12,9 +12,6 @@ class ConfigTests(unittest.TestCase):
         super(ConfigTests, self).setUp()
         self.default_loc = os.path.join(os.path.expanduser('~'), 'orchestrator_config.json')
         self.config_loc = os.path.join(os.path.expanduser('~'), 'test_orchestrator_config.json')
-        if os.path.exists(self.config_loc):
-            raise RuntimeError('A test_orchestrator_config.json already exists')  # TODO Remove
-
 
     def tearDown(self):
         super(ConfigTests, self).tearDown()

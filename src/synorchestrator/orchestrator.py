@@ -194,7 +194,7 @@ class Orchestrator():
                 services.append(wf_service)
         return services
 
-    def service_ready(self,service):
+    def service_ready(self, service):
         if self.get_submissions(service, status='SUBMITTED'):
             return False
         return True
@@ -221,7 +221,7 @@ class Orchestrator():
                 pass
             time.sleep(8)
 
-    def monitor_service(self,wf_service):
+    def monitor_service(self, wf_service):
         """
         Returns a dictionary of all of the jobs under a single wes service appropriate
         for displaying as a pandas dataframe.
